@@ -104,7 +104,32 @@ nxos:
     - name: SYSTEM_TEMPLATE
       type: model
       configuration:
+        ip_access_lists:
+          - name: VTY-ACL-IN
+            description: "ACL for VTY access"
+            statistics_per_entry: false
+            entries:
+              - sequence_number: 10
+                remark: "Allow SSH from management subnet"
+              - sequence_number: 20
+                action: permit
+                protocol: tcp
+                source:
+                  prefix: ${mgmt_subnet}
+                  prefix_length: ${mgmt_subnet_length}
+                destination:
+                  prefix: 0.0.0.0
+                  prefix_length: 0
+                  port_operator: eq
+                  port_1: 22
         system:
+          cli_aliases:
+          - name: wr
+            command: copy running-config startup-config
+          line_console_exec_timeout: 0
+          line_vty_exec_timeout: 30
+          line_vty_session_limit: 10
+          line_vty_access_class_in: VTY-ACL-IN
           clock:
             timezone_name: PARIS
             timezone_hours: 1
@@ -146,10 +171,19 @@ nxos:
         udld:
           aggressive: true
           # message_time: 7
+        
+       
+        lldp:
+          holdtime: 120
+          timer: 30
+          portid_subtype: short
+          chassis_id: true
         feature:
           lacp: true
           vpc: true
           interface_vlan: true
           nxapi: true
           udld: true
+          lldp: true
+
         

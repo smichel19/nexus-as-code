@@ -12,6 +12,7 @@ nxos:
           ip_arp_synchronize: true
           ipv6_nd_synchronize: true
           auto_recovery: true
+          auto_recovery_reload_delay: 360
           delay_restore: 150
           # delay_restore_interface_vlan: 30
           keepalive:
