@@ -8,6 +8,8 @@ nxos:
         - SYSLOG
         - VPC
         - VPC_PO1000
+        - VLANS_TEMPLATE
+        - SYSTEM_TEMPLATE
 
   devices:
     - name: Nexus-1
@@ -18,6 +20,7 @@ nxos:
         username: admin
         password: cisco
       variables:
+        hostname: Nexus-1
         lo0_ip: 10.1.101.1
         mgmt_ip: 192.168.0.117
         vpc_peer_ip: 192.168.0.118
@@ -34,3 +37,4 @@ nxos:
       dns_server_1: 8.8.8.8
       dns_server_2: 8.8.4.4
       tacacs_server: 1.1.1.1
+      domain_name: example.com

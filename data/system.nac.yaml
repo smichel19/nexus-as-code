@@ -1,15 +1,115 @@
 ---
 nxos:
-  devices:
-    - name: Nexus-1
+  templates:
+    - name: VLANS_TEMPLATE
+      type: model
+      configuration:
+        vlan:
+          vlans:
+            - id: 23
+              name: "Vlan_SAN/IP"
+            - id: 25
+              name: "HA_F5_S13699V0_S10958K0"
+            - id: 27
+              name: "Vlan_NAS/IP"
+            - id: 28
+              name: "Replication-HNAS_DT"
+            - id: 29
+              name: "Replication-HNAS_BigData_CEOD"
+            - id: 30
+              name: "Replication-DataDomain"
+            - id: 38
+              name: "vlan_DC"
+            - id: 82
+              name: "Z08.Operation_vsys1"
+            - id: 133
+              name: "Quorum_Serveur"
+            - id: 138
+              name: "vlan_DSR_RS"
+            - id: 142
+              name: "vlan_DC_WRG"
+            - id: 150
+              name: "ESX_Vmotion"
+            - id: 160
+              name: "Synchro_AD"
+            - id: 161
+              name: "Rebond_CSI"
+            - id: 162
+              name: "Admin_CSI"
+            - id: 163
+              name: "ESX_VMKernel"
+            - id: 202
+              name: "Vlan_Admin"
+            - id: 247
+              name: "Infoblox_ILO"
+            - id: 248
+              name: "Infoblox_MGMT"
+            - id: 260
+              name: "Admin-Big_Data"
+            - id: 261
+              name: "Intra-Infra-Big_Data"
+            - id: 262
+              name: "Extra-Infra-Big_Data"
+            - id: 263
+              name: "User-Infra-Big_Data"
+            - id: 264
+              name: "User-Knox-Big_Data"
+            - id: 265
+              name: "Replication-Big_Data"
+            - id: 309
+              name: "vlan_DSR_SERVITUDE"
+            - id: 310
+              name: "STDSI"
+            - id: 316
+              name: "DSR_OCEANE"
+            - id: 319
+              name: "DSR_OCEANE2-GEO"
+            - id: 328
+              name: "vlan_DSR_CITRIX"
+            - id: 329
+              name: "vlan_DSR_ADDM"
+            - id: 349
+              name: "vlan_DSR_NGV2"
+            - id: 354
+              name: "DSR_C4"
+            - id: 355
+              name: "vlan_DNS_VLG"
+            - id: 366
+              name: "Z03.Citrix_VIP"
+            - id: 367
+              name: "Z03.Citrix_SNIP"
+            - id: 369
+              name: "Mulesoft"
+            - id: 378
+              name: "Outillages"
+            - id: 380
+              name: "Servitudes_2"
+            - id: 381
+              name: "DSR_new_RS"
+            - id: 382
+              name: "DSR_new_RI"
+            - id: 385
+              name: "HA-F5-S13699V0-S13700D0-S10958K0"
+            - id: 666
+              name: "TEST"
+            - id: 2500
+              name: "Z06.DS-FRCRY1-NET_DDI_ACCESS"
+            - id: 3334
+              name: "Z06.W06-ONEADC"
+            - id: 3335
+              name: "Z06.W06-REDADM"
+            - id: 3800
+              name: "Native-Vlan"
+              
+    - name: SYSTEM_TEMPLATE
+      type: model
       configuration:
         system:
-          hostname: Nexus-1
+          hostname: ${hostname}
           mtu: 9216
         feature:
           lacp: true
           vpc: true
           interface_vlan: true
           nxapi: true
-
-  
+        
