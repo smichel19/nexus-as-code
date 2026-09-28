@@ -7,13 +7,13 @@ nxos:
         vpc:
           domain_id: ${switch_vpc_id}
           peer_link_port_channel: 500
-          peer_gateway: true  # Permet au switch de répondre aux requêtes ARP du peer
-          peer_switch: true   # Active le "vPC Peer Switch" (recommandé)
+          peer_gateway: false  # Permet au switch de répondre aux requêtes ARP du peer
+          peer_switch: false   # Active le "vPC Peer Switch" (recommandé)
           ip_arp_synchronize: true
           ipv6_nd_synchronize: true
           auto_recovery: true
           delay_restore: 150
-          delay_restore_interface_vlan: 30
+          # delay_restore_interface_vlan: 30
           keepalive:
             source_ip: ${mgmt_ip}
             destination_ip: ${vpc_peer_ip}
@@ -22,8 +22,7 @@ nxos:
             timeout: 3
         interfaces: 
           port_channels:
-            - id: 500
-              
+            - id: 500  
               description: "vPC Peer-Link"
               switchport:
                 mode: trunk

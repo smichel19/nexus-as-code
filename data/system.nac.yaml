@@ -105,11 +105,51 @@ nxos:
       type: model
       configuration:
         system:
+          clock:
+            timezone_name: PARIS
+            timezone_hours: 1
+            timezone_minutes: 0
+            summer_time:
+              name: CEST
+              offset_minutes: 60
+              start_week: 5
+              start_day: Sun
+              start_month: Mar
+              start_time: "02:00"
+              end_week: 5
+              end_day: Sun
+              end_month: Oct
+              end_time: "03:00"
           hostname: ${hostname}
           mtu: 9216
+        spanning_tree:
+          mode: rapid-pvst
+          loopguard: true
+          bridge_assurance: true
+          port_type_edge_default: true
+          port_type_edge_bpduguard_default: true
+          vlans:
+            - vlans:
+                ranges:
+                  - from: 1
+                    to: 3967
+              priority: 40960       
+        users:
+            password_strength_check: false
+            accounts:
+              - username: NTT
+                description: Network Admin NTT
+                password: "N3tw0rkAdm!n"
+                password_encryption_type: scrypt
+                roles:
+                  - name: network-admin
+        udld:
+          aggressive: true
+          # message_time: 7
         feature:
           lacp: true
           vpc: true
           interface_vlan: true
           nxapi: true
+          udld: true
         
