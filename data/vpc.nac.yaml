@@ -24,7 +24,7 @@ nxos:
         interfaces: 
           port_channels:
             - id: 500  
-              description: "vPC Peer-Link"
+              description: "vPC Peer-Link to ${vpc_peer_hostname}"
               switchport:
                 mode: trunk
                 trunk_allowed_vlans:
@@ -40,12 +40,12 @@ nxos:
                   guard: none
           ethernets:
             - id: ${vpc_peer_link_members[0]}
-              description: "vPC Peer-Link"
+              description: "vPC Peer-Link to ${vpc_peer_hostname}  - Eth${vpc_peer_link_members[0]}"
               channel_group_force: true
               channel_group: 500
               channel_group_mode: active
             - id: ${vpc_peer_link_members[1]}
-              description: "vPC Peer-Link"
+              description: "vPC Peer-Link to ${vpc_peer_hostname}  - Eth${vpc_peer_link_members[1]}"
               channel_group_force: true
               channel_group: 500
               channel_group_mode: active
