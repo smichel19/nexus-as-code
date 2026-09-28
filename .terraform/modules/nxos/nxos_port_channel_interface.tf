@@ -1,0 +1,188 @@
+locals {
+  interfaces_port_channels = flatten([
+    for device in local.devices : [
+      for int in try(local.device_config[device.name].interfaces.port_channels, []) : {
+        key                                     = format("%s/%s", device.name, int.id)
+        device                                  = device.name
+        id                                      = int.id
+        type                                    = "po"
+        vrf                                     = try(int.vrf, "default")
+        ospf_process_name                       = try(int.ospf.process, null)
+        ospf_advertise_secondaries              = try(int.ospf.advertise_secondaries, null)
+        ospf_area                               = try(int.ospf.area, null)
+        ospf_bfd                                = try(int.ospf.bfd, null) == null ? null : (try(int.ospf.bfd) ? "enabled" : "disabled")
+        ospf_cost                               = try(int.ospf.cost, null)
+        ospf_dead_interval                      = try(int.ospf.dead_interval, null)
+        ospf_hello_interval                     = try(int.ospf.hello_interval, null)
+        ospf_network_type                       = try(int.ospf.network, null)
+        ospf_passive                            = try(int.ospf.passive_interface, null) == null ? null : (try(int.ospf.passive_interface) ? "enabled" : "disabled")
+        ospf_priority                           = try(int.ospf.priority, null)
+        ospf_authentication_key                 = try(int.ospf.authentication_key, null)
+        ospf_authentication_key_id              = try(int.ospf.message_digest_key_id, null)
+        ospf_authentication_key_secure_mode     = try(int.ospf.authentication_key_secure_mode, null)
+        ospf_authentication_keychain            = try(int.ospf.authentication_key_chain, null)
+        ospf_authentication_md5_key             = try(int.ospf.message_digest_key, null)
+        ospf_authentication_md5_key_secure_mode = try(int.ospf.message_digest_key_secure_mode, null)
+        ospf_authentication_type                = try(int.ospf.authentication, null)
+        ospf_advertise_subnet                   = try(int.ospf.advertise_subnet, false)
+        ospf_mtu_ignore                         = try(int.ospf.mtu_ignore, false)
+        ospf_node_flag                          = try(int.ospf.prefix_attributes_n_flag_clear, null)
+        ospf_retransmit_interval                = try(int.ospf.retransmit_interval, null)
+        ospf_transmit_delay                     = try(int.ospf.transmit_delay, null)
+        ospfv3_process                          = try(int.ospfv3.process, null)
+        ospfv3_advertise_secondaries            = try(int.ospfv3.advertise_secondaries, null)
+        ospfv3_area                             = try(int.ospfv3.area, null)
+        ospfv3_bfd                              = try(int.ospfv3.bfd, null) == null ? null : (try(int.ospfv3.bfd) ? "enabled" : "disabled")
+        ospfv3_cost                             = try(int.ospfv3.cost, null)
+        ospfv3_dead_interval                    = try(int.ospfv3.dead_interval, null)
+        ospfv3_hello_interval                   = try(int.ospfv3.hello_interval, null)
+        ospfv3_network_type                     = try(int.ospfv3.network, null)
+        ospfv3_passive_interface                = try(int.ospfv3.passive_interface, null) == null ? null : (try(int.ospfv3.passive_interface) ? "enabled" : "disabled")
+        ospfv3_priority                         = try(int.ospfv3.priority, null)
+        ospfv3_instance_id                      = try(int.ospfv3.instance_id, null)
+        ospfv3_mtu_ignore                       = try(int.ospfv3.mtu_ignore, null)
+        ospfv3_retransmit_interval              = try(int.ospfv3.retransmit_interval, null)
+        ospfv3_transmit_delay                   = try(int.ospfv3.transmit_delay, null)
+        pim_bfd                                 = try(int.pim.bfd, null)
+        pim_dr_priority                         = try(int.pim.dr_priority, null)
+        pim_passive                             = try(int.pim.passive, null)
+        pim_sparse_mode                         = try(int.pim.sparse_mode, null)
+        isis_instance_name                      = try(int.isis.instance_name, null)
+        isis_circuit_type                       = try(int.isis.circuit_type, null)
+        isis_ipv4                               = try(int.isis.ipv4, null)
+        isis_ipv6                               = try(int.isis.ipv6, null)
+        isis_network_point_to_point             = try(int.isis.network_point_to_point, null)
+        isis_passive_interface                  = try(int.isis.passive_interface, null)
+        isis_metric_l1                          = try(int.isis.metric_level_1, null)
+        isis_metric_l2                          = try(int.isis.metric_level_2, null)
+        isis_ipv6_metric_l1                     = try(int.isis.ipv6_metric_level_1, null)
+        isis_ipv6_metric_l2                     = try(int.isis.ipv6_metric_level_2, null)
+        isis_priority_l1                        = try(int.isis.priority_level_1, null)
+        isis_priority_l2                        = try(int.isis.priority_level_2, null)
+        isis_hello_interval                     = try(int.isis.hello_interval, null)
+        isis_hello_interval_l1                  = try(int.isis.hello_interval_level_1, null)
+        isis_hello_interval_l2                  = try(int.isis.hello_interval_level_2, null)
+        isis_hello_multiplier                   = try(int.isis.hello_multiplier, null)
+        isis_hello_multiplier_l1                = try(int.isis.hello_multiplier_level_1, null)
+        isis_hello_multiplier_l2                = try(int.isis.hello_multiplier_level_2, null)
+        isis_hello_padding                      = try(int.isis.hello_padding, null)
+        isis_authentication_check               = try(int.isis.authentication_check, null)
+        isis_authentication_check_level_1       = try(int.isis.authentication_check_level_1, null)
+        isis_authentication_check_level_2       = try(int.isis.authentication_check_level_2, null)
+        isis_authentication_key_chain           = try(int.isis.authentication_key_chain, null)
+        isis_authentication_key_chain_level_1   = try(int.isis.authentication_key_chain_level_1, null)
+        isis_authentication_key_chain_level_2   = try(int.isis.authentication_key_chain_level_2, null)
+        isis_authentication_type                = try(int.isis.authentication_type, null)
+        isis_authentication_type_level_1        = try(int.isis.authentication_type_level_1, null)
+        isis_authentication_type_level_2        = try(int.isis.authentication_type_level_2, null)
+        isis_mtu_check                          = try(int.isis.mtu_check, null)
+        isis_mtu_check_l1                       = try(int.isis.mtu_check_level_1, null)
+        isis_mtu_check_l2                       = try(int.isis.mtu_check_level_2, null)
+        isis_bfd                                = try(int.isis.bfd, null) == null ? null : (try(int.isis.bfd) ? "enabled" : "disabled")
+        isis_ipv6_bfd                           = try(int.isis.ipv6_bfd, null) == null ? null : (try(int.isis.ipv6_bfd) ? "enabled" : "disabled")
+        isis_csnp_interval_l1                   = try(int.isis.csnp_interval_level_1, null)
+        isis_csnp_interval_l2                   = try(int.isis.csnp_interval_level_2, null)
+        isis_lsp_interval                       = try(int.isis.lsp_interval, null)
+        isis_retransmit_interval                = try(int.isis.retransmit_interval, null)
+        isis_retransmit_throttle_interval       = try(int.isis.retransmit_throttle_interval, null)
+        isis_mesh_group                         = try(int.isis.mesh_group, null)
+        isis_mesh_group_blocked                 = try(int.isis.mesh_group_blocked, null)
+        isis_n_flag_clear                       = try(int.isis.prefix_attributes_n_flag_clear, null)
+        isis_suppress_prefix                    = try(int.isis.suppressed, null)
+      }
+    ]
+  ])
+
+  port_channel_members_map = { for device in local.devices : device.name =>
+    { for int in try(local.device_config[device.name].interfaces.port_channels, []) : "po${int.id}" =>
+      { for eth in try(local.device_config[device.name].interfaces.ethernets, []) : "sys/intf/phys-[eth${eth.id}]" => {
+        force = try(eth.channel_group_force, null)
+      } if try(eth.channel_group, null) == int.id }
+    }
+  }
+}
+
+resource "nxos_port_channel_interface" "port_channel_interface" {
+  for_each = { for device in local.devices : device.name => device
+  if length(try(local.device_config[device.name].interfaces.port_channels, [])) > 0 }
+  device = each.key
+  port_channel_interfaces = length(try(local.device_config[each.key].interfaces.port_channels, [])) > 0 ? { for int in try(local.device_config[each.key].interfaces.port_channels, []) : "po${int.id}" => {
+    port_channel_mode    = try([for eth in try(local.device_config[each.key].interfaces.ethernets, []) : try(eth.channel_group_mode, null) if try(eth.channel_group, null) == int.id][0], null)
+    minimum_links        = try(int.lacp_min_links, null)
+    maximum_links        = try(int.lacp_max_bundle, null)
+    suspend_individual   = try(int.lacp_suspend_individual, null) != null ? (try(int.lacp_suspend_individual) ? "enable" : "disable") : null
+    access_vlan          = !try(int.switchport.enabled, true) ? "unknown" : try(int.switchport.access_vlan, null) != null ? "vlan-${int.switchport.access_vlan}" : null
+    admin_state          = try(int.shutdown, null) != null ? (try(int.shutdown) ? "down" : "up") : "up"
+    auto_negotiation     = try(int.negotiate_auto, null)
+    bandwidth            = try(int.bandwidth, null)
+    delay                = try(int.delay, null)
+    description          = try(int.description, null)
+    duplex               = try(int.duplex, null)
+    layer                = !try(int.switchport.enabled, true) ? "Layer3" : "Layer2"
+    link_logging         = try(int.logging_event_port_link_status, null) != null ? (try(int.logging_event_port_link_status) ? "enable" : "disable") : null
+    medium               = try(int.medium, null)
+    mode                 = try(local.switchport_mode_map[try(int.switchport.mode)], try(int.switchport.mode, null))
+    mtu                  = try(int.mtu, null)
+    native_vlan          = !try(int.switchport.enabled, true) ? "unknown" : try(int.switchport.trunk_native_vlan, null) != null ? "vlan-${int.switchport.trunk_native_vlan}" : null
+    speed                = try(int.speed, null)
+    trunk_vlans          = !try(int.switchport.enabled, true) ? "1-4094" : try(provider::utils::normalize_vlans(try(int.switchport.trunk_allowed_vlans), "string-nxos"), null)
+    dot1q_ethertype      = try(int.dot1q_ethertype, null)
+    graceful_convergence = try(int.lacp_graceful_convergence, null) != null ? (try(int.lacp_graceful_convergence) ? "enable" : "disable") : null
+    hash_distribution    = try(int.port_channel_hash_distribution, null)
+    itu_channel          = try(int.itu_channel, null)
+    lacp_delay_mode      = try(int.lacp_mode_delay, null) != null ? (try(int.lacp_mode_delay) ? "enable" : "disable") : null
+    lacp_vpc_convergence = try(int.lacp_vpc_convergence, null) != null ? (try(int.lacp_vpc_convergence) ? "enable" : "disable") : null
+    link_debounce_down   = try(int.link_debounce_time, null)
+    load_defer           = try(int.port_channel_load_defer, null) != null ? (try(int.port_channel_load_defer) ? "enable" : "disable") : null
+    mdix                 = try(int.mdix, null)
+    router_mac           = try(int.mac_address, null)
+    snmp_trap_state      = try(int.snmp_trap_link_status, null) != null ? (try(int.snmp_trap_link_status) ? "enable" : "disable") : null
+    squelch              = try(int.squelch, null) != null ? (try(int.squelch) ? "enable" : "disable") : null
+    transmission_mode    = try(int.switchport.monitor, null) == null ? null : (try(int.switchport.monitor) ? "trans-port" : "not-a-trans-port")
+    trunk_logging        = try(int.logging_event_port_trunk_status, null) != null ? (try(int.logging_event_port_trunk_status) ? "enable" : "disable") : null
+    auto_exclude_vlans   = try(provider::utils::normalize_vlans(try(int.switchport.autostate_exclude_vlans), "string-nxos"), null)
+    switchport_block     = try(int.switchport.block, null) != null ? join(",", sort(try(int.switchport.block, []))) : null
+    switchport_isolated  = try(int.switchport.isolated, null) == null ? null : (try(int.switchport.isolated) ? "enable" : "disable")
+    switchport_mac_learn = try(int.switchport.mac_learning, null) == null ? null : (try(int.switchport.mac_learning) ? "enable" : "disable")
+    user_configured_flags = join(",", sort(compact([
+      "admin_layer",
+      try(int.mtu, null) != null ? "admin_mtu" : "",
+      try(int.mac_address, null) != null ? "admin_router_mac" : "",
+      try(int.shutdown, null) != null || !try(int.switchport.enabled, true) ? "admin_state" : "",
+    ])))
+    vrf_dn                                              = !try(int.switchport.enabled, true) ? "sys/inst-${try(int.vrf, "default")}" : null
+    buffer_boost                                        = try(int.buffer_boost, null) == null ? null : (try(int.buffer_boost) ? "enable" : "disable")
+    flow_control_receive                                = try(int.flowcontrol_receive, null)
+    flow_control_send                                   = try(int.flowcontrol_send, null)
+    shut_down_lan                                       = try(int.shutdown_lan, null) == null ? null : (try(int.shutdown_lan) ? "enable" : "disable")
+    storm_control_action                                = try(int.storm_control.action[0], null)
+    storm_control_action_1                              = try(int.storm_control.action[1], null)
+    storm_control_action_2                              = try(int.storm_control.action[2], null)
+    storm_control_broadcast_level                       = try(format("%f", int.storm_control.broadcast_level[0]), null)
+    storm_control_broadcast_level_1                     = try(format("%f", int.storm_control.broadcast_level[1]), null)
+    storm_control_broadcast_level_2                     = try(format("%f", int.storm_control.broadcast_level[2]), null)
+    storm_control_broadcast_packets_per_second          = try(int.storm_control.broadcast_pps, null)
+    storm_control_multicast_level                       = try(format("%f", int.storm_control.multicast_level[0]), null)
+    storm_control_multicast_level_1                     = try(format("%f", int.storm_control.multicast_level[1]), null)
+    storm_control_multicast_level_2                     = try(format("%f", int.storm_control.multicast_level[2]), null)
+    storm_control_multicast_packets_per_second          = try(int.storm_control.multicast_pps, null)
+    storm_control_unicast_level                         = try(format("%f", int.storm_control.unicast_level[0]), null)
+    storm_control_unicast_level_1                       = try(format("%f", int.storm_control.unicast_level[1]), null)
+    storm_control_unicast_level_2                       = try(format("%f", int.storm_control.unicast_level[2]), null)
+    storm_control_unicast_packets_per_second            = try(int.storm_control.unicast_pps, null)
+    multisite_interface_tracking                        = try(int.evpn_multisite_dci_tracking, null) == true ? "dci" : try(int.evpn_multisite_fabric_tracking, null) == true ? "fabric" : null
+    port_type_fabric                                    = try(int.port_type_fabric, null) == null ? null : (try(int.port_type_fabric) ? "yes" : "no")
+    priority_flow_control_mode                          = try(int.priority_flow_control_mode, null)
+    priority_flow_control_send_tlv                      = try(int.priority_flow_control_send_tlv, null)
+    priority_flow_control_watchdog_interval             = try(int.priority_flow_control_watch_dog_interval, null) == null ? null : (try(int.priority_flow_control_watch_dog_interval) ? "on" : "off")
+    priority_flow_control_watchdog_disable_action       = try(int.priority_flow_control_watch_dog_disable_action, null)
+    priority_flow_control_watchdog_interface_multiplier = try(int.priority_flow_control_watch_dog_interface_multiplier, null)
+    members                                             = length(local.port_channel_members_map[each.key]["po${int.id}"]) > 0 ? local.port_channel_members_map[each.key]["po${int.id}"] : null
+  } } : null
+
+  depends_on = [
+    nxos_feature.feature,
+    nxos_physical_interface.physical_interface,
+    nxos_vrf.vrf,
+  ]
+}

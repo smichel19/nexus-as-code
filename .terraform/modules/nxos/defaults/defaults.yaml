@@ -1,0 +1,6 @@
+defaults:
+  nxos:
+    templates:
+      order: 0
+    devices:
+      managed: true

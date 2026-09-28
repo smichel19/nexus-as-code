@@ -1,0 +1,35 @@
+---
+nxos:
+  templates:
+    - name: NTP
+      type: model
+      configuration:
+        ntp:
+          logging: true
+          servers:
+            - ip: ${ntp_server_1}
+              prefer: true
+              use_vrf: management
+            - ip: ${ntp_server_2}
+              use_vrf: management
+
+    - name: DNS
+      type: model
+      configuration:
+        dns:
+          domain_lookup: true
+          domain_name: example.com
+          name_servers:
+            - ${dns_server_1}
+            - ${dns_server_2}
+
+    - name: SYSLOG
+      type: model
+      configuration:
+        logging:
+          level: warnings
+          servers:
+            - host: ${syslog_server}
+              severity: warnings
+              use_vrf: management
+              facility: local7

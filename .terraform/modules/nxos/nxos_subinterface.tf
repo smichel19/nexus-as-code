@@ -1,0 +1,238 @@
+locals {
+  interfaces_subinterfaces = flatten([
+    for device in local.devices : concat(
+      [for sub in flatten([for int in try(local.device_config[device.name].interfaces.ethernets, []) : [
+        for s in try(int.subinterfaces, []) : merge(s, { parent_type = "eth", parent_id = int.id })
+        ]]) : {
+        key                                     = format("%s/eth%s.%s", device.name, sub.parent_id, sub.id)
+        device                                  = device.name
+        id                                      = "${sub.parent_id}.${sub.id}"
+        type                                    = "eth"
+        vrf                                     = try(sub.vrf, "default")
+        ospf_process_name                       = try(sub.ospf.process, null)
+        ospf_advertise_secondaries              = try(sub.ospf.advertise_secondaries, null)
+        ospf_area                               = try(sub.ospf.area, null)
+        ospf_bfd                                = try(sub.ospf.bfd, null) == null ? null : (try(sub.ospf.bfd) ? "enabled" : "disabled")
+        ospf_cost                               = try(sub.ospf.cost, null)
+        ospf_dead_interval                      = try(sub.ospf.dead_interval, null)
+        ospf_hello_interval                     = try(sub.ospf.hello_interval, null)
+        ospf_network_type                       = try(sub.ospf.network, null)
+        ospf_passive                            = try(sub.ospf.passive_interface, null) == null ? null : (try(sub.ospf.passive_interface) ? "enabled" : "disabled")
+        ospf_priority                           = try(sub.ospf.priority, null)
+        ospf_authentication_key                 = try(sub.ospf.authentication_key, null)
+        ospf_authentication_key_id              = try(sub.ospf.message_digest_key_id, null)
+        ospf_authentication_key_secure_mode     = try(sub.ospf.authentication_key_secure_mode, null)
+        ospf_authentication_keychain            = try(sub.ospf.authentication_key_chain, null)
+        ospf_authentication_md5_key             = try(sub.ospf.message_digest_key, null)
+        ospf_authentication_md5_key_secure_mode = try(sub.ospf.message_digest_key_secure_mode, null)
+        ospf_authentication_type                = try(sub.ospf.authentication, null)
+        ospf_advertise_subnet                   = try(sub.ospf.advertise_subnet, false)
+        ospf_mtu_ignore                         = try(sub.ospf.mtu_ignore, false)
+        ospf_node_flag                          = try(sub.ospf.prefix_attributes_n_flag_clear, null)
+        ospf_retransmit_interval                = try(sub.ospf.retransmit_interval, null)
+        ospf_transmit_delay                     = try(sub.ospf.transmit_delay, null)
+        ospfv3_process                          = try(sub.ospfv3.process, null)
+        ospfv3_advertise_secondaries            = try(sub.ospfv3.advertise_secondaries, null)
+        ospfv3_area                             = try(sub.ospfv3.area, null)
+        ospfv3_bfd                              = try(sub.ospfv3.bfd, null) == null ? null : (try(sub.ospfv3.bfd) ? "enabled" : "disabled")
+        ospfv3_cost                             = try(sub.ospfv3.cost, null)
+        ospfv3_dead_interval                    = try(sub.ospfv3.dead_interval, null)
+        ospfv3_hello_interval                   = try(sub.ospfv3.hello_interval, null)
+        ospfv3_network_type                     = try(sub.ospfv3.network, null)
+        ospfv3_passive_interface                = try(sub.ospfv3.passive_interface, null) == null ? null : (try(sub.ospfv3.passive_interface) ? "enabled" : "disabled")
+        ospfv3_priority                         = try(sub.ospfv3.priority, null)
+        ospfv3_instance_id                      = try(sub.ospfv3.instance_id, null)
+        ospfv3_mtu_ignore                       = try(sub.ospfv3.mtu_ignore, null)
+        ospfv3_retransmit_interval              = try(sub.ospfv3.retransmit_interval, null)
+        ospfv3_transmit_delay                   = try(sub.ospfv3.transmit_delay, null)
+        pim_bfd                                 = try(sub.pim.bfd, null)
+        pim_dr_priority                         = try(sub.pim.dr_priority, null)
+        pim_passive                             = try(sub.pim.passive, null)
+        pim_sparse_mode                         = try(sub.pim.sparse_mode, null)
+        isis_instance_name                      = try(sub.isis.instance_name, null)
+        isis_circuit_type                       = try(sub.isis.circuit_type, null)
+        isis_ipv4                               = try(sub.isis.ipv4, null)
+        isis_ipv6                               = try(sub.isis.ipv6, null)
+        isis_network_point_to_point             = try(sub.isis.network_point_to_point, null)
+        isis_passive_interface                  = try(sub.isis.passive_interface, null)
+        isis_metric_l1                          = try(sub.isis.metric_level_1, null)
+        isis_metric_l2                          = try(sub.isis.metric_level_2, null)
+        isis_ipv6_metric_l1                     = try(sub.isis.ipv6_metric_level_1, null)
+        isis_ipv6_metric_l2                     = try(sub.isis.ipv6_metric_level_2, null)
+        isis_priority_l1                        = try(sub.isis.priority_level_1, null)
+        isis_priority_l2                        = try(sub.isis.priority_level_2, null)
+        isis_hello_interval                     = try(sub.isis.hello_interval, null)
+        isis_hello_interval_l1                  = try(sub.isis.hello_interval_level_1, null)
+        isis_hello_interval_l2                  = try(sub.isis.hello_interval_level_2, null)
+        isis_hello_multiplier                   = try(sub.isis.hello_multiplier, null)
+        isis_hello_multiplier_l1                = try(sub.isis.hello_multiplier_level_1, null)
+        isis_hello_multiplier_l2                = try(sub.isis.hello_multiplier_level_2, null)
+        isis_hello_padding                      = try(sub.isis.hello_padding, null)
+        isis_authentication_check               = try(sub.isis.authentication_check, null)
+        isis_authentication_check_level_1       = try(sub.isis.authentication_check_level_1, null)
+        isis_authentication_check_level_2       = try(sub.isis.authentication_check_level_2, null)
+        isis_authentication_key_chain           = try(sub.isis.authentication_key_chain, null)
+        isis_authentication_key_chain_level_1   = try(sub.isis.authentication_key_chain_level_1, null)
+        isis_authentication_key_chain_level_2   = try(sub.isis.authentication_key_chain_level_2, null)
+        isis_authentication_type                = try(sub.isis.authentication_type, null)
+        isis_authentication_type_level_1        = try(sub.isis.authentication_type_level_1, null)
+        isis_authentication_type_level_2        = try(sub.isis.authentication_type_level_2, null)
+        isis_mtu_check                          = try(sub.isis.mtu_check, null)
+        isis_mtu_check_l1                       = try(sub.isis.mtu_check_level_1, null)
+        isis_mtu_check_l2                       = try(sub.isis.mtu_check_level_2, null)
+        isis_bfd                                = try(sub.isis.bfd, null) == null ? null : (try(sub.isis.bfd) ? "enabled" : "disabled")
+        isis_ipv6_bfd                           = try(sub.isis.ipv6_bfd, null) == null ? null : (try(sub.isis.ipv6_bfd) ? "enabled" : "disabled")
+        isis_csnp_interval_l1                   = try(sub.isis.csnp_interval_level_1, null)
+        isis_csnp_interval_l2                   = try(sub.isis.csnp_interval_level_2, null)
+        isis_lsp_interval                       = try(sub.isis.lsp_interval, null)
+        isis_retransmit_interval                = try(sub.isis.retransmit_interval, null)
+        isis_retransmit_throttle_interval       = try(sub.isis.retransmit_throttle_interval, null)
+        isis_mesh_group                         = try(sub.isis.mesh_group, null)
+        isis_mesh_group_blocked                 = try(sub.isis.mesh_group_blocked, null)
+        isis_n_flag_clear                       = try(sub.isis.prefix_attributes_n_flag_clear, null)
+        isis_suppress_prefix                    = try(sub.isis.suppressed, null)
+      }],
+      [for sub in flatten([for int in try(local.device_config[device.name].interfaces.port_channels, []) : [
+        for s in try(int.subinterfaces, []) : merge(s, { parent_type = "po", parent_id = int.id })
+        ]]) : {
+        key                                     = format("%s/po%s.%s", device.name, sub.parent_id, sub.id)
+        device                                  = device.name
+        id                                      = "${sub.parent_id}.${sub.id}"
+        type                                    = "po"
+        vrf                                     = try(sub.vrf, "default")
+        ospf_process_name                       = try(sub.ospf.process, null)
+        ospf_advertise_secondaries              = try(sub.ospf.advertise_secondaries, null)
+        ospf_area                               = try(sub.ospf.area, null)
+        ospf_bfd                                = try(sub.ospf.bfd, null) == null ? null : (try(sub.ospf.bfd) ? "enabled" : "disabled")
+        ospf_cost                               = try(sub.ospf.cost, null)
+        ospf_dead_interval                      = try(sub.ospf.dead_interval, null)
+        ospf_hello_interval                     = try(sub.ospf.hello_interval, null)
+        ospf_network_type                       = try(sub.ospf.network, null)
+        ospf_passive                            = try(sub.ospf.passive_interface, null) == null ? null : (try(sub.ospf.passive_interface) ? "enabled" : "disabled")
+        ospf_priority                           = try(sub.ospf.priority, null)
+        ospf_authentication_key                 = try(sub.ospf.authentication_key, null)
+        ospf_authentication_key_id              = try(sub.ospf.message_digest_key_id, null)
+        ospf_authentication_key_secure_mode     = try(sub.ospf.authentication_key_secure_mode, null)
+        ospf_authentication_keychain            = try(sub.ospf.authentication_key_chain, null)
+        ospf_authentication_md5_key             = try(sub.ospf.message_digest_key, null)
+        ospf_authentication_md5_key_secure_mode = try(sub.ospf.message_digest_key_secure_mode, null)
+        ospf_authentication_type                = try(sub.ospf.authentication, null)
+        ospf_advertise_subnet                   = try(sub.ospf.advertise_subnet, false)
+        ospf_mtu_ignore                         = try(sub.ospf.mtu_ignore, false)
+        ospf_node_flag                          = try(sub.ospf.prefix_attributes_n_flag_clear, null)
+        ospf_retransmit_interval                = try(sub.ospf.retransmit_interval, null)
+        ospf_transmit_delay                     = try(sub.ospf.transmit_delay, null)
+        ospfv3_process                          = try(sub.ospfv3.process, null)
+        ospfv3_advertise_secondaries            = try(sub.ospfv3.advertise_secondaries, null)
+        ospfv3_area                             = try(sub.ospfv3.area, null)
+        ospfv3_bfd                              = try(sub.ospfv3.bfd, null) == null ? null : (try(sub.ospfv3.bfd) ? "enabled" : "disabled")
+        ospfv3_cost                             = try(sub.ospfv3.cost, null)
+        ospfv3_dead_interval                    = try(sub.ospfv3.dead_interval, null)
+        ospfv3_hello_interval                   = try(sub.ospfv3.hello_interval, null)
+        ospfv3_network_type                     = try(sub.ospfv3.network, null)
+        ospfv3_passive_interface                = try(sub.ospfv3.passive_interface, null) == null ? null : (try(sub.ospfv3.passive_interface) ? "enabled" : "disabled")
+        ospfv3_priority                         = try(sub.ospfv3.priority, null)
+        ospfv3_instance_id                      = try(sub.ospfv3.instance_id, null)
+        ospfv3_mtu_ignore                       = try(sub.ospfv3.mtu_ignore, null)
+        ospfv3_retransmit_interval              = try(sub.ospfv3.retransmit_interval, null)
+        ospfv3_transmit_delay                   = try(sub.ospfv3.transmit_delay, null)
+        pim_bfd                                 = try(sub.pim.bfd, null)
+        pim_dr_priority                         = try(sub.pim.dr_priority, null)
+        pim_passive                             = try(sub.pim.passive, null)
+        pim_sparse_mode                         = try(sub.pim.sparse_mode, null)
+        isis_instance_name                      = try(sub.isis.instance_name, null)
+        isis_circuit_type                       = try(sub.isis.circuit_type, null)
+        isis_ipv4                               = try(sub.isis.ipv4, null)
+        isis_ipv6                               = try(sub.isis.ipv6, null)
+        isis_network_point_to_point             = try(sub.isis.network_point_to_point, null)
+        isis_passive_interface                  = try(sub.isis.passive_interface, null)
+        isis_metric_l1                          = try(sub.isis.metric_level_1, null)
+        isis_metric_l2                          = try(sub.isis.metric_level_2, null)
+        isis_ipv6_metric_l1                     = try(sub.isis.ipv6_metric_level_1, null)
+        isis_ipv6_metric_l2                     = try(sub.isis.ipv6_metric_level_2, null)
+        isis_priority_l1                        = try(sub.isis.priority_level_1, null)
+        isis_priority_l2                        = try(sub.isis.priority_level_2, null)
+        isis_hello_interval                     = try(sub.isis.hello_interval, null)
+        isis_hello_interval_l1                  = try(sub.isis.hello_interval_level_1, null)
+        isis_hello_interval_l2                  = try(sub.isis.hello_interval_level_2, null)
+        isis_hello_multiplier                   = try(sub.isis.hello_multiplier, null)
+        isis_hello_multiplier_l1                = try(sub.isis.hello_multiplier_level_1, null)
+        isis_hello_multiplier_l2                = try(sub.isis.hello_multiplier_level_2, null)
+        isis_hello_padding                      = try(sub.isis.hello_padding, null)
+        isis_authentication_check               = try(sub.isis.authentication_check, null)
+        isis_authentication_check_level_1       = try(sub.isis.authentication_check_level_1, null)
+        isis_authentication_check_level_2       = try(sub.isis.authentication_check_level_2, null)
+        isis_authentication_key_chain           = try(sub.isis.authentication_key_chain, null)
+        isis_authentication_key_chain_level_1   = try(sub.isis.authentication_key_chain_level_1, null)
+        isis_authentication_key_chain_level_2   = try(sub.isis.authentication_key_chain_level_2, null)
+        isis_authentication_type                = try(sub.isis.authentication_type, null)
+        isis_authentication_type_level_1        = try(sub.isis.authentication_type_level_1, null)
+        isis_authentication_type_level_2        = try(sub.isis.authentication_type_level_2, null)
+        isis_mtu_check                          = try(sub.isis.mtu_check, null)
+        isis_mtu_check_l1                       = try(sub.isis.mtu_check_level_1, null)
+        isis_mtu_check_l2                       = try(sub.isis.mtu_check_level_2, null)
+        isis_bfd                                = try(sub.isis.bfd, null) == null ? null : (try(sub.isis.bfd) ? "enabled" : "disabled")
+        isis_ipv6_bfd                           = try(sub.isis.ipv6_bfd, null) == null ? null : (try(sub.isis.ipv6_bfd) ? "enabled" : "disabled")
+        isis_csnp_interval_l1                   = try(sub.isis.csnp_interval_level_1, null)
+        isis_csnp_interval_l2                   = try(sub.isis.csnp_interval_level_2, null)
+        isis_lsp_interval                       = try(sub.isis.lsp_interval, null)
+        isis_retransmit_interval                = try(sub.isis.retransmit_interval, null)
+        isis_retransmit_throttle_interval       = try(sub.isis.retransmit_throttle_interval, null)
+        isis_mesh_group                         = try(sub.isis.mesh_group, null)
+        isis_mesh_group_blocked                 = try(sub.isis.mesh_group_blocked, null)
+        isis_n_flag_clear                       = try(sub.isis.prefix_attributes_n_flag_clear, null)
+        isis_suppress_prefix                    = try(sub.isis.suppressed, null)
+      }],
+    )
+  ])
+  subinterfaces_map = { for device in local.devices : device.name =>
+    merge(
+      { for sub in flatten([for int in try(local.device_config[device.name].interfaces.ethernets, []) : [
+        for s in try(int.subinterfaces, []) : merge(s, { parent_id = "eth${int.id}" })
+        ]]) : "${sub.parent_id}.${sub.id}" => {
+        admin_state             = try(sub.shutdown, null) != null ? (try(sub.shutdown) ? "down" : "up") : "up"
+        bandwidth               = try(sub.bandwidth, null)
+        delay                   = try(sub.delay, null)
+        description             = try(sub.description, null)
+        encap                   = try(sub.encapsulation, null)
+        link_logging            = try(sub.logging_event_port_link_status, null) != null ? (try(sub.logging_event_port_link_status) ? "enable" : "disable") : null
+        medium                  = try(sub.medium, null)
+        mtu                     = try(sub.mtu, null)
+        router_mac              = try(sub.mac_address, null)
+        router_mac_ipv6_extract = try(sub.mac_address_ipv6_extract, null) != null ? (try(sub.mac_address_ipv6_extract) ? "enable" : "disable") : null
+        snmp_trap               = try(sub.snmp_trap_link_status, null) != null ? (try(sub.snmp_trap_link_status) ? "enable" : "disable") : null
+        vrf_dn                  = try(sub.vrf, null) != null ? "sys/inst-${try(sub.vrf)}" : null
+      } },
+      { for sub in flatten([for int in try(local.device_config[device.name].interfaces.port_channels, []) : [
+        for s in try(int.subinterfaces, []) : merge(s, { parent_id = "po${int.id}" })
+        ]]) : "${sub.parent_id}.${sub.id}" => {
+        admin_state             = try(sub.shutdown, null) != null ? (try(sub.shutdown) ? "down" : "up") : "up"
+        bandwidth               = try(sub.bandwidth, null)
+        delay                   = try(sub.delay, null)
+        description             = try(sub.description, null)
+        encap                   = try(sub.encapsulation, null)
+        link_logging            = try(sub.logging_event_port_link_status, null) != null ? (try(sub.logging_event_port_link_status) ? "enable" : "disable") : null
+        medium                  = try(sub.medium, null)
+        mtu                     = try(sub.mtu, null)
+        router_mac              = try(sub.mac_address, null)
+        router_mac_ipv6_extract = try(sub.mac_address_ipv6_extract, null) != null ? (try(sub.mac_address_ipv6_extract) ? "enable" : "disable") : null
+        snmp_trap               = try(sub.snmp_trap_link_status, null) != null ? (try(sub.snmp_trap_link_status) ? "enable" : "disable") : null
+        vrf_dn                  = try(sub.vrf, null) != null ? "sys/inst-${try(sub.vrf)}" : null
+      } },
+    )
+  }
+}
+
+resource "nxos_subinterface" "subinterface" {
+  for_each = { for device in local.devices : device.name => device
+    if length(try(flatten([for int in try(local.device_config[device.name].interfaces.ethernets, []) : try(int.subinterfaces, [])]), [])) > 0 ||
+  length(try(flatten([for int in try(local.device_config[device.name].interfaces.port_channels, []) : try(int.subinterfaces, [])]), [])) > 0 }
+  device        = each.key
+  subinterfaces = length(local.subinterfaces_map[each.key]) > 0 ? local.subinterfaces_map[each.key] : null
+
+  depends_on = [
+    nxos_physical_interface.physical_interface,
+    nxos_port_channel_interface.port_channel_interface,
+    nxos_vrf.vrf,
+  ]
+}

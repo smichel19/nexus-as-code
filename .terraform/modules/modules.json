@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"nxos","Source":"registry.terraform.io/netascode/nac-nxos/nxos","Version":"0.3.0","Dir":".terraform/modules/nxos"}]}

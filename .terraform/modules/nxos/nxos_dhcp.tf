@@ -1,0 +1,118 @@
+locals {
+  dhcp_relay_interfaces_map = { for device in local.devices : device.name =>
+    { for item in local.dhcp_relay_interfaces : item.interface_id => {
+      information_trusted = try(item.ip_dhcp_relay_information_trusted, null)
+      smart_relay         = try(item.ip_dhcp_relay_smart_relay, null)
+      subnet_broadcast    = try(item.ip_dhcp_relay_subnet_broadcast, null)
+      options             = try(item.ip_dhcp_relay_information_option, null) == null ? null : (try(item.ip_dhcp_relay_information_option) ? "relay-info" : "none")
+      subnet_selection    = try(item.ip_dhcp_relay_source_subnet, null)
+      v6_smart_relay      = try(item.ipv6_dhcp_smart_relay, null)
+      addresses = (length(try(item.ip_dhcp_relay_addresses, [])) > 0 || length(try(item.ipv6_dhcp_relay_addresses, [])) > 0) ? merge(
+        { for addr in try(item.ip_dhcp_relay_addresses, []) : "${try(addr.vrf, "none")};${addr.address}" => {} },
+        { for addr in try(item.ipv6_dhcp_relay_addresses, []) : "${try(addr.vrf, "none")};${addr.address}" => {} }
+      ) : null
+    } if item.device == device.name }
+  }
+  dhcp_relay_interfaces = flatten([
+    for device in local.devices : concat(
+      [for int in try(local.device_config[device.name].interfaces.ethernets, []) : {
+        device                            = device.name
+        interface_id                      = "eth${int.id}"
+        ip_dhcp_relay_addresses           = try(int.ip.dhcp_relay_addresses, [])
+        ip_dhcp_relay_information_trusted = try(int.ip.dhcp_relay_information_trusted, null)
+        ip_dhcp_relay_smart_relay         = try(int.ip.dhcp_relay_smart_relay, null)
+        ip_dhcp_relay_subnet_broadcast    = try(int.ip.dhcp_relay_subnet_broadcast, null)
+        ip_dhcp_relay_information_option  = try(int.ip.dhcp_relay_information_option, null)
+        ip_dhcp_relay_source_subnet       = try(int.ip.dhcp_relay_source_subnet, null)
+        ipv6_dhcp_smart_relay             = try(int.ipv6.dhcp_smart_relay, null)
+        ipv6_dhcp_relay_addresses         = try(int.ipv6.dhcp_relay_addresses, [])
+      } if try(int.ip.dhcp_relay_addresses, null) != null || try(int.ip.dhcp_relay_information_trusted, null) != null || try(int.ip.dhcp_relay_smart_relay, null) != null || try(int.ip.dhcp_relay_subnet_broadcast, null) != null || try(int.ip.dhcp_relay_information_option, null) != null || try(int.ip.dhcp_relay_source_subnet, null) != null || try(int.ipv6.dhcp_smart_relay, null) != null || try(int.ipv6.dhcp_relay_addresses, null) != null],
+      [for int in try(local.device_config[device.name].interfaces.vlans, []) : {
+        device                            = device.name
+        interface_id                      = "vlan${int.id}"
+        ip_dhcp_relay_addresses           = try(int.ip.dhcp_relay_addresses, [])
+        ip_dhcp_relay_information_trusted = try(int.ip.dhcp_relay_information_trusted, null)
+        ip_dhcp_relay_smart_relay         = try(int.ip.dhcp_relay_smart_relay, null)
+        ip_dhcp_relay_subnet_broadcast    = try(int.ip.dhcp_relay_subnet_broadcast, null)
+        ip_dhcp_relay_information_option  = try(int.ip.dhcp_relay_information_option, null)
+        ip_dhcp_relay_source_subnet       = try(int.ip.dhcp_relay_source_subnet, null)
+        ipv6_dhcp_smart_relay             = try(int.ipv6.dhcp_smart_relay, null)
+        ipv6_dhcp_relay_addresses         = try(int.ipv6.dhcp_relay_addresses, [])
+      } if try(int.ip.dhcp_relay_addresses, null) != null || try(int.ip.dhcp_relay_information_trusted, null) != null || try(int.ip.dhcp_relay_smart_relay, null) != null || try(int.ip.dhcp_relay_subnet_broadcast, null) != null || try(int.ip.dhcp_relay_information_option, null) != null || try(int.ip.dhcp_relay_source_subnet, null) != null || try(int.ipv6.dhcp_smart_relay, null) != null || try(int.ipv6.dhcp_relay_addresses, null) != null],
+      [for int in try(local.device_config[device.name].interfaces.loopbacks, []) : {
+        device                            = device.name
+        interface_id                      = "lo${int.id}"
+        ip_dhcp_relay_addresses           = try(int.ip.dhcp_relay_addresses, [])
+        ip_dhcp_relay_information_trusted = try(int.ip.dhcp_relay_information_trusted, null)
+        ip_dhcp_relay_smart_relay         = try(int.ip.dhcp_relay_smart_relay, null)
+        ip_dhcp_relay_subnet_broadcast    = try(int.ip.dhcp_relay_subnet_broadcast, null)
+        ip_dhcp_relay_information_option  = try(int.ip.dhcp_relay_information_option, null)
+        ip_dhcp_relay_source_subnet       = try(int.ip.dhcp_relay_source_subnet, null)
+        ipv6_dhcp_smart_relay             = try(int.ipv6.dhcp_smart_relay, null)
+        ipv6_dhcp_relay_addresses         = try(int.ipv6.dhcp_relay_addresses, [])
+      } if try(int.ip.dhcp_relay_addresses, null) != null || try(int.ip.dhcp_relay_information_trusted, null) != null || try(int.ip.dhcp_relay_smart_relay, null) != null || try(int.ip.dhcp_relay_subnet_broadcast, null) != null || try(int.ip.dhcp_relay_information_option, null) != null || try(int.ip.dhcp_relay_source_subnet, null) != null || try(int.ipv6.dhcp_smart_relay, null) != null || try(int.ipv6.dhcp_relay_addresses, null) != null],
+      [for int in try(local.device_config[device.name].interfaces.port_channels, []) : {
+        device                            = device.name
+        interface_id                      = "po${int.id}"
+        ip_dhcp_relay_addresses           = try(int.ip.dhcp_relay_addresses, [])
+        ip_dhcp_relay_information_trusted = try(int.ip.dhcp_relay_information_trusted, null)
+        ip_dhcp_relay_smart_relay         = try(int.ip.dhcp_relay_smart_relay, null)
+        ip_dhcp_relay_subnet_broadcast    = try(int.ip.dhcp_relay_subnet_broadcast, null)
+        ip_dhcp_relay_information_option  = try(int.ip.dhcp_relay_information_option, null)
+        ip_dhcp_relay_source_subnet       = try(int.ip.dhcp_relay_source_subnet, null)
+        ipv6_dhcp_smart_relay             = try(int.ipv6.dhcp_smart_relay, null)
+        ipv6_dhcp_relay_addresses         = try(int.ipv6.dhcp_relay_addresses, [])
+      } if try(int.ip.dhcp_relay_addresses, null) != null || try(int.ip.dhcp_relay_information_trusted, null) != null || try(int.ip.dhcp_relay_smart_relay, null) != null || try(int.ip.dhcp_relay_subnet_broadcast, null) != null || try(int.ip.dhcp_relay_information_option, null) != null || try(int.ip.dhcp_relay_source_subnet, null) != null || try(int.ipv6.dhcp_smart_relay, null) != null || try(int.ipv6.dhcp_relay_addresses, null) != null],
+    )
+  ])
+}
+
+resource "nxos_dhcp" "dhcp" {
+  for_each = { for device in local.devices : device.name => device
+    if try(local.device_config[device.name].dhcp, null) != null ||
+    try(local.device_config[device.name].arp.inspection, null) != null ||
+    length([for int in try(local.device_config[device.name].interfaces.ethernets, []) : int if try(int.ip.dhcp_relay_addresses, null) != null || try(int.ip.dhcp_relay_information_trusted, null) != null || try(int.ip.dhcp_relay_smart_relay, null) != null || try(int.ipv6.dhcp_smart_relay, null) != null || try(int.ipv6.dhcp_relay_addresses, null) != null]) > 0 ||
+    length([for int in try(local.device_config[device.name].interfaces.vlans, []) : int if try(int.ip.dhcp_relay_addresses, null) != null || try(int.ip.dhcp_relay_information_trusted, null) != null || try(int.ip.dhcp_relay_smart_relay, null) != null || try(int.ipv6.dhcp_smart_relay, null) != null || try(int.ipv6.dhcp_relay_addresses, null) != null]) > 0 ||
+    length([for int in try(local.device_config[device.name].interfaces.loopbacks, []) : int if try(int.ip.dhcp_relay_addresses, null) != null || try(int.ip.dhcp_relay_information_trusted, null) != null || try(int.ip.dhcp_relay_smart_relay, null) != null || try(int.ipv6.dhcp_smart_relay, null) != null || try(int.ipv6.dhcp_relay_addresses, null) != null]) > 0 ||
+  length([for int in try(local.device_config[device.name].interfaces.port_channels, []) : int if try(int.ip.dhcp_relay_addresses, null) != null || try(int.ip.dhcp_relay_information_trusted, null) != null || try(int.ip.dhcp_relay_smart_relay, null) != null || try(int.ipv6.dhcp_smart_relay, null) != null || try(int.ipv6.dhcp_relay_addresses, null) != null]) > 0 }
+  device                                      = each.key
+  admin_state                                 = null
+  relay_information_option                    = try(local.device_config[each.key].dhcp.ip_dhcp_relay.information_option, null)
+  relay_information_option_trust              = try(local.device_config[each.key].dhcp.ip_dhcp_relay.information_option_trust, null)
+  relay_information_option_vpn                = try(local.device_config[each.key].dhcp.ip_dhcp_relay.information_option_vpn, null)
+  relay_information_trust_all                 = try(local.device_config[each.key].dhcp.ip_dhcp_relay.information_trust_all, null)
+  relay_information_option_server_id_override = try(local.device_config[each.key].dhcp.ip_dhcp_relay.information_option_server_id_override, null) == null ? null : (try(local.device_config[each.key].dhcp.ip_dhcp_relay.information_option_server_id_override) ? 1 : 0)
+  relay_sub_option_circuit_id_customized      = try(local.device_config[each.key].dhcp.ip_dhcp_relay.sub_option_circuit_id_customized, null)
+  relay_sub_option_circuit_id_format_string   = try(local.device_config[each.key].dhcp.ip_dhcp_relay.sub_option_circuit_id_format_string, null)
+  relay_sub_option_type_cisco                 = try(local.device_config[each.key].dhcp.ip_dhcp_relay.sub_option_type_cisco, null)
+  relay_sub_option_format_non_tlv             = try(local.device_config[each.key].dhcp.ip_dhcp_relay.sub_option_format_non_tlv, null)
+  smart_relay_global                          = try(local.device_config[each.key].dhcp.ip_dhcp_smart_relay_global, null)
+  v4_relay                                    = try(local.device_config[each.key].dhcp.ip_dhcp_relay.enabled, null)
+  v6_relay                                    = try(local.device_config[each.key].dhcp.ipv6_dhcp_relay.enabled, null)
+  relay_v4_over_v6                            = try(local.device_config[each.key].dhcp.ip_dhcp_relay.v4_over_v6, null)
+  relay_v6_iapd_route_add                     = try(local.device_config[each.key].dhcp.ipv6_dhcp_relay.iapd_route_add, null)
+  ipv6_relay_information_option_vpn           = try(local.device_config[each.key].dhcp.ipv6_dhcp_relay.information_option_vpn, null)
+  ipv6_relay_option_type_cisco                = try(local.device_config[each.key].dhcp.ipv6_dhcp_relay.option_type_cisco, null)
+  ipv6_relay_option79                         = try(local.device_config[each.key].dhcp.ipv6_dhcp_relay.option79, null)
+  v6_smart_relay_global                       = try(local.device_config[each.key].dhcp.ipv6_dhcp_relay.smart_relay_global, null)
+  packet_strict_validation                    = try(local.device_config[each.key].dhcp.ip_dhcp_packet_strict_validation, null)
+  snooping                                    = try(local.device_config[each.key].dhcp.ip_dhcp_snooping.enabled, null)
+  snooping_information_option                 = try(local.device_config[each.key].dhcp.ip_dhcp_snooping.information_option, null)
+  snooping_verify_mac_address                 = try(local.device_config[each.key].dhcp.ip_dhcp_snooping.verify_mac_address, null)
+  snooping_sub_option_format_non_tlv          = try(local.device_config[each.key].dhcp.ip_dhcp_snooping.sub_option_format_non_tlv, null)
+  snoop_sub_option_circuit_id_format_string   = try(local.device_config[each.key].dhcp.ip_dhcp_snooping.sub_option_circuit_id_format_string, null)
+  dai_log_buffer_entries                      = try(local.device_config[each.key].arp.inspection.log_buffer_entries, null)
+  dai_validate_destination                    = try(local.device_config[each.key].arp.inspection.validate_dst_mac, null)
+  dai_validate_ip                             = try(local.device_config[each.key].arp.inspection.validate_ip, null)
+  dai_validate_source                         = try(local.device_config[each.key].arp.inspection.validate_src_mac, null)
+  relay_interfaces                            = length(local.dhcp_relay_interfaces_map[each.key]) > 0 ? local.dhcp_relay_interfaces_map[each.key] : null
+
+  depends_on = [
+    nxos_feature.feature,
+    nxos_loopback_interface.loopback_interface,
+    nxos_physical_interface.physical_interface,
+    nxos_port_channel_interface.port_channel_interface,
+    nxos_svi_interface.svi_interface,
+    nxos_vrf.vrf,
+  ]
+}

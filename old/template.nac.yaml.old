@@ -1,0 +1,87 @@
+nxos:
+  global:
+    variables:
+      anycast_ip: 10.1.101.1
+      ntp_server_1: 193.42.63.23
+      ntp_server_2: 129.250.35.251
+      syslog_server: 1.1.1.1
+      dns_server_1: 8.8.8.8
+      dns_server_2: 8.8.4.4
+      tacacs_server: 1.1.1.1
+  templates:
+    - name: LOOPBACK
+      type: model
+      configuration:
+        interfaces:
+          loopbacks:
+            - id: 0
+              ip:
+                address: ${lo0_ip}/32
+    - name: NTP
+      type: model
+      configuration:
+       ntp:
+          logging: true
+          servers:
+            - ip: ${ntp_server_1}
+              prefer: true
+              use_vrf: management
+            - ip: ${ntp_server_2}
+              use_vrf: management
+    - name: DNS
+      type: model
+      configuration:
+        dns:
+          domain_lookup: true
+          domain_name: example.com
+          domain: example.com
+          servers:
+            - ${dns_server_1}
+            - ${dns_server_2}
+    - name: SYSLOG
+      type: model
+      configuration:
+        logging:
+        servers:
+            - host: ${syslog_server}
+              severity: warnings
+              use_vrf: management
+    - name: VPC
+      type: model
+      configuration:
+        feature:
+          vpc: true
+        vpc:
+          domain_id: ${switch_vpc_id}
+          peer_gateway: false
+          peer_switch: false
+          ip_arp_synchronize: true
+          ipv6_nd_synchronize: true
+          auto_recovery: true
+          delay_restore: 150
+          delay_restore_interface_vlan: 30
+          keepalive:
+            source_ip: ${mgmt_ip}
+            destination_ip: ${vpc_peer_ip}
+        interfaces:
+          port_channels:
+            - id: 500
+              description: "vPC Peer-Link"
+              switchport:
+                mode: trunk
+                trunk_allowed_vlans:
+                  ranges:
+                    - from: 1
+                      to: 4094
+              mtu: 9216
+              lacp_min_links: 1
+              lacp_max_bundle: 32
+              lacp_suspend_individual: true
+              spanning_tree:
+                port_type: network
+                guard: none
+              interface_groups:
+                -name: vpc_peer_link
+                 
+
+        

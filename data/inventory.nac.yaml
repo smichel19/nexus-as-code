@@ -1,0 +1,36 @@
+---
+nxos:
+  device_groups:
+    - name: VPC_SWITCHES
+      templates:
+        - NTP
+        - DNS
+        - SYSLOG
+        - VPC
+        - VPC_PO1000
+
+  devices:
+    - name: Nexus-1
+      url: https://192.168.0.117
+      device_groups:
+        - VPC_SWITCHES
+      credentials:
+        username: admin
+        password: cisco
+      variables:
+        lo0_ip: 10.1.101.1
+        mgmt_ip: 192.168.0.117
+        vpc_peer_ip: 192.168.0.118
+        switch_vpc_id: 100
+        vpc_peer_link_members: ["1/1", "1/2"]
+
+
+  global:
+    variables:
+      anycast_ip: 10.1.101.1
+      ntp_server_1: 193.42.63.23
+      ntp_server_2: 129.250.35.251
+      syslog_server: 1.1.1.1
+      dns_server_1: 8.8.8.8
+      dns_server_2: 8.8.4.4
+      tacacs_server: 1.1.1.1

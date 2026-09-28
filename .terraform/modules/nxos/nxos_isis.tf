@@ -1,0 +1,161 @@
+locals {
+  isis_interfaces_map = { for device in local.devices : device.name =>
+    { for int in local.isis_interfaces : "${int.type}${int.id}" => {
+      authentication_check         = int.isis_authentication_check
+      authentication_check_l1      = int.isis_authentication_check_level_1
+      authentication_check_l2      = int.isis_authentication_check_level_2
+      authentication_key           = int.isis_authentication_key_chain
+      authentication_key_l1        = int.isis_authentication_key_chain_level_1
+      authentication_key_l2        = int.isis_authentication_key_chain_level_2
+      authentication_type          = int.isis_authentication_type
+      authentication_type_l1       = int.isis_authentication_type_level_1
+      authentication_type_l2       = int.isis_authentication_type_level_2
+      circuit_type                 = int.isis_circuit_type != null ? try({ "level-1" = "l1", "level-2" = "l2", "level-1-2" = "l12" }[int.isis_circuit_type], int.isis_circuit_type) : null
+      vrf                          = int.vrf
+      hello_interval               = int.isis_hello_interval
+      hello_interval_l1            = int.isis_hello_interval_l1
+      hello_interval_l2            = int.isis_hello_interval_l2
+      hello_multiplier             = int.isis_hello_multiplier
+      hello_multiplier_l1          = int.isis_hello_multiplier_l1
+      hello_multiplier_l2          = int.isis_hello_multiplier_l2
+      hello_padding                = int.isis_hello_padding
+      instance_name                = int.isis_instance_name
+      metric_l1                    = int.isis_metric_l1
+      metric_l2                    = int.isis_metric_l2
+      mtu_check                    = int.isis_mtu_check
+      mtu_check_l1                 = int.isis_mtu_check_l1
+      mtu_check_l2                 = int.isis_mtu_check_l2
+      network_type_p2p             = int.isis_network_point_to_point != null ? (int.isis_network_point_to_point ? "on" : "off") : null
+      passive                      = int.isis_passive_interface != null ? try({ "level-1" = "l1", "level-2" = "l2", "level-1-2" = "l12", "no-level-1" = "noL1", "no-level-2" = "noL2", "no-level-1-2" = "noL12" }[int.isis_passive_interface], int.isis_passive_interface) : null
+      priority_l1                  = int.isis_priority_l1
+      priority_l2                  = int.isis_priority_l2
+      enable_ipv4                  = coalesce(int.isis_ipv4, true)
+      csnp_interval_l1             = int.isis_csnp_interval_l1
+      csnp_interval_l2             = int.isis_csnp_interval_l2
+      lsp_refresh_interval         = int.isis_lsp_interval
+      mesh_group_blocked           = int.isis_mesh_group_blocked
+      mesh_group_id                = int.isis_mesh_group
+      ipv6_metric_l1               = int.isis_ipv6_metric_l1
+      ipv6_metric_l2               = int.isis_ipv6_metric_l2
+      n_flag_clear                 = int.isis_n_flag_clear
+      retransmit_interval          = int.isis_retransmit_interval
+      retransmit_throttle_interval = int.isis_retransmit_throttle_interval
+      suppressed_state             = int.isis_suppress_prefix
+      ipv4_bfd                     = int.isis_bfd
+      ipv6_bfd                     = int.isis_ipv6_bfd
+      ipv6                         = int.isis_ipv6
+    } if int.device == device.name && int.isis_instance_name != null }
+  }
+  isis_interfaces = concat(local.interfaces_ethernets, local.interfaces_loopbacks, local.interfaces_vlans, local.interfaces_port_channels, local.interfaces_subinterfaces)
+}
+
+resource "nxos_isis" "isis" {
+  for_each    = { for device in local.devices : device.name => device if try(local.device_config[device.name].feature.isis, false) }
+  device      = each.key
+  admin_state = null
+
+  instances = length(try(local.device_config[each.key].routing.isis_instances, [])) > 0 ? { for inst in try(local.device_config[each.key].routing.isis_instances, []) : inst.name => {
+    flush_routes = try(inst.flush_routes, null)
+    isolate      = try(inst.isolate, null)
+
+    vrfs = merge(
+      # Synthetic "default" VRF from instance-level attributes
+      {
+        "default" = {
+          admin_state              = try(inst.shutdown, null) == null ? null : (try(inst.shutdown) ? "disabled" : "enabled")
+          authentication_check_l1  = try(inst.authentication_check_level_1, null)
+          authentication_check_l2  = try(inst.authentication_check_level_2, null)
+          authentication_key_l1    = try(inst.authentication_key_chain_level_1, null)
+          authentication_key_l2    = try(inst.authentication_key_chain_level_2, null)
+          authentication_type_l1   = try(inst.authentication_type_level_1, null) != null ? try({ "cleartext" = "clear" }[inst.authentication_type_level_1], inst.authentication_type_level_1) : null
+          authentication_type_l2   = try(inst.authentication_type_level_2, null) != null ? try({ "cleartext" = "clear" }[inst.authentication_type_level_2], inst.authentication_type_level_2) : null
+          bandwidth_reference      = try(inst.reference_bandwidth, null)
+          bandwidth_reference_unit = try(inst.reference_bandwidth_unit, null)
+          is_type                  = try(inst.is_type, null) != null ? try({ "level-1" = "l1", "level-2" = "l2", "level-1-2" = "l12" }[inst.is_type], inst.is_type) : null
+          metric_type              = try(inst.metric_style, null)
+          mtu                      = try(inst.lsp_mtu, null)
+          net                      = try(inst.net, null)
+          passive_default          = try(inst.passive_interface_default, null) != null ? try({ "level-1" = "l1", "level-2" = "l2", "level-1-2" = "l12" }[inst.passive_interface_default], inst.passive_interface_default) : null
+          control                  = try(inst.log_adjacency_changes, null) != null ? (try(inst.log_adjacency_changes) ? "log-adj-changes" : "unspecified") : null
+          lsp_lifetime             = try(inst.max_lsp_lifetime, null)
+          queue_limit              = try(inst.queue_limit, null)
+          overload_admin_state     = try(inst.set_overload_bit, null) != null ? try({ "always" = "always-on", "on-startup" = "bootup", "on-startup-wait-for-bgp" = "bgp-converge", "on-startup-wait-for-bgp-max-wait" = "bgp-converge-max-wait" }[inst.set_overload_bit], inst.set_overload_bit) : null
+          overload_startup_time    = try(inst.set_overload_bit_on_startup, null)
+          overload_bgp_as_number   = try(inst.set_overload_bit_wait_for_bgp, null)
+          overload_suppress        = try(inst.set_overload_bit_suppress, null)
+
+          address_families = length(try(inst.address_families, [])) > 0 ? { for af in try(inst.address_families, []) : replace(replace(af.address_family, "ipv4-unicast", "v4"), "ipv6-unicast", "v6") => {
+            segment_routing_mpls                    = try(af.segment_routing_mpls, null)
+            enable_bfd                              = try(af.bfd, null)
+            prefix_advertise_passive_l1             = try(af.advertise_passive_only_level_1, null)
+            prefix_advertise_passive_l2             = try(af.advertise_passive_only_level_2, null)
+            control                                 = try(af.adjacency_check, null) != null ? (try(af.adjacency_check) ? "adj-check" : null) : null
+            default_information_originate           = try(af.default_information_originate, null)
+            default_information_originate_route_map = try(af.default_information_originate_route_map, null)
+            distance                                = try(af.distance, null)
+            max_ecmp                                = try(af.maximum_paths, null)
+            multi_topology                          = try(replace(replace(replace(af.multi_topology, "standard", "st"), "multi-topology-transition", "mtt"), "multi-topology", "mt"), null)
+            router_id_interface                     = try(af.router_id_interface_type, null) != null ? "${local.intf_prefix_map[try(af.router_id_interface_type)]}${try(af.router_id_interface_id, "")}" : null
+            router_id_ip_address                    = try(af.router_id_ip_address, null)
+            table_map                               = try(af.table_map, null)
+            table_map_filter                        = try(af.table_map_filter, null) != null ? (try(af.table_map_filter) ? "enabled" : "disabled") : null
+          } } : null
+        }
+      },
+      # Explicit non-default VRFs
+      { for vrf in try(inst.vrfs, []) : vrf.vrf => {
+        admin_state              = try(vrf.shutdown, null) == null ? null : (try(vrf.shutdown) ? "disabled" : "enabled")
+        authentication_check_l1  = try(vrf.authentication_check_level_1, null)
+        authentication_check_l2  = try(vrf.authentication_check_level_2, null)
+        authentication_key_l1    = try(vrf.authentication_key_chain_level_1, null)
+        authentication_key_l2    = try(vrf.authentication_key_chain_level_2, null)
+        authentication_type_l1   = try(vrf.authentication_type_level_1, null) != null ? try({ "cleartext" = "clear" }[vrf.authentication_type_level_1], vrf.authentication_type_level_1) : null
+        authentication_type_l2   = try(vrf.authentication_type_level_2, null) != null ? try({ "cleartext" = "clear" }[vrf.authentication_type_level_2], vrf.authentication_type_level_2) : null
+        bandwidth_reference      = try(vrf.reference_bandwidth, null)
+        bandwidth_reference_unit = try(vrf.reference_bandwidth_unit, null)
+        is_type                  = try(vrf.is_type, null) != null ? try({ "level-1" = "l1", "level-2" = "l2", "level-1-2" = "l12" }[vrf.is_type], vrf.is_type) : null
+        metric_type              = try(vrf.metric_style, null)
+        mtu                      = try(vrf.lsp_mtu, null)
+        net                      = try(vrf.net, null)
+        passive_default          = try(vrf.passive_interface_default, null) != null ? try({ "level-1" = "l1", "level-2" = "l2", "level-1-2" = "l12" }[vrf.passive_interface_default], vrf.passive_interface_default) : null
+        control                  = try(vrf.log_adjacency_changes, null) != null ? (try(vrf.log_adjacency_changes) ? "log-adj-changes" : "unspecified") : null
+        lsp_lifetime             = try(vrf.max_lsp_lifetime, null)
+        queue_limit              = try(vrf.queue_limit, null)
+        overload_admin_state     = try(vrf.set_overload_bit, null) != null ? try({ "always" = "always-on", "on-startup" = "bootup", "on-startup-wait-for-bgp" = "bgp-converge", "on-startup-wait-for-bgp-max-wait" = "bgp-converge-max-wait" }[vrf.set_overload_bit], vrf.set_overload_bit) : null
+        overload_startup_time    = try(vrf.set_overload_bit_on_startup, null)
+        overload_bgp_as_number   = try(vrf.set_overload_bit_wait_for_bgp, null)
+        overload_suppress        = try(vrf.set_overload_bit_suppress, null)
+
+        address_families = length(try(vrf.address_families, [])) > 0 ? { for af in try(vrf.address_families, []) : replace(replace(af.address_family, "ipv4-unicast", "v4"), "ipv6-unicast", "v6") => {
+          segment_routing_mpls                    = try(af.segment_routing_mpls, null)
+          enable_bfd                              = try(af.bfd, null)
+          prefix_advertise_passive_l1             = try(af.advertise_passive_only_level_1, null)
+          prefix_advertise_passive_l2             = try(af.advertise_passive_only_level_2, null)
+          control                                 = try(af.adjacency_check, null) != null ? (try(af.adjacency_check) ? "adj-check" : null) : null
+          default_information_originate           = try(af.default_information_originate, null)
+          default_information_originate_route_map = try(af.default_information_originate_route_map, null)
+          distance                                = try(af.distance, null)
+          max_ecmp                                = try(af.maximum_paths, null)
+          multi_topology                          = try(replace(replace(replace(af.multi_topology, "standard", "st"), "multi-topology-transition", "mtt"), "multi-topology", "mt"), null)
+          router_id_interface                     = try(af.router_id_interface_type, null) != null ? "${local.intf_prefix_map[try(af.router_id_interface_type)]}${try(af.router_id_interface_id, "")}" : null
+          router_id_ip_address                    = try(af.router_id_ip_address, null)
+          table_map                               = try(af.table_map, null)
+          table_map_filter                        = try(af.table_map_filter, null) != null ? (try(af.table_map_filter) ? "enabled" : "disabled") : null
+        } } : null
+      } }
+    )
+
+  } } : null
+
+  interfaces = length(local.isis_interfaces_map[each.key]) > 0 ? local.isis_interfaces_map[each.key] : null
+
+  depends_on = [
+    nxos_feature.feature,
+    nxos_loopback_interface.loopback_interface,
+    nxos_physical_interface.physical_interface,
+    nxos_port_channel_interface.port_channel_interface,
+    nxos_subinterface.subinterface,
+    nxos_svi_interface.svi_interface,
+    nxos_vrf.vrf,
+  ]
+}

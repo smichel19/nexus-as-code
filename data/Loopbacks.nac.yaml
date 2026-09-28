@@ -1,0 +1,12 @@
+---
+nxos:
+  templates:
+    - name: LOOPBACK
+      type: model
+      configuration:
+        interfaces:
+          loopbacks:
+            - id: 0
+              description: "Management Loopback"
+              ip:
+                address: ${lo0_ip}/32

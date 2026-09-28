@@ -1,0 +1,131 @@
+locals {
+  community_list_mode_map = {
+    "standard" = "standard"
+    "expanded" = "regex"
+  }
+}
+
+resource "nxos_route_policy" "route_policy" {
+  for_each = { for device in local.devices : device.name => device
+    if length(try(local.device_config[device.name].ip_prefix_lists, [])) > 0 ||
+    length(try(local.device_config[device.name].ipv6_prefix_lists, [])) > 0 ||
+    length(try(local.device_config[device.name].route_maps, [])) > 0 ||
+  length(try(local.device_config[device.name].community_lists, [])) > 0 }
+  device = each.key
+
+  ipv4_prefix_lists = length(try(local.device_config[each.key].ip_prefix_lists, [])) > 0 ? { for pl in try(local.device_config[each.key].ip_prefix_lists, []) : pl.name => {
+    description = try(pl.description, null)
+
+    entries = length(try(pl.entries, [])) > 0 ? { for entry in try(pl.entries, []) : entry.seq => {
+      action     = try(entry.action, null)
+      criteria   = try(entry.ge, null) != null || try(entry.le, null) != null ? "inexact" : "exact"
+      prefix     = try(entry.prefix, null)
+      from_range = try(entry.ge, null)
+      to_range   = try(entry.le, null)
+      mask       = try(entry.mask, null)
+    } } : null
+  } } : null
+
+  ipv6_prefix_lists = length(try(local.device_config[each.key].ipv6_prefix_lists, [])) > 0 ? { for pl in try(local.device_config[each.key].ipv6_prefix_lists, []) : pl.name => {
+    description = try(pl.description, null)
+
+    entries = length(try(pl.entries, [])) > 0 ? { for entry in try(pl.entries, []) : entry.seq => {
+      action     = try(entry.action, null)
+      criteria   = try(entry.ge, null) != null || try(entry.le, null) != null ? "inexact" : "exact"
+      prefix     = try(entry.prefix, null)
+      from_range = try(entry.ge, null)
+      to_range   = try(entry.le, null)
+      mask       = try(entry.mask, null)
+    } } : null
+  } } : null
+
+  route_maps = length(try(local.device_config[each.key].route_maps, [])) > 0 ? { for rm in try(local.device_config[each.key].route_maps, []) : rm.name => {
+    pbr_statistics = try(rm.pbr_statistics, null) != null ? (try(rm.pbr_statistics) ? "enabled" : "disabled") : null
+
+    entries = length(try(rm.entries, [])) > 0 ? { for entry in try(rm.entries, []) : entry.order => {
+      action                  = try(entry.action, null)
+      description             = try(entry.description, null)
+      drop_on_fail_v4         = try(entry.drop_on_fail_v4, null) != null ? (try(entry.drop_on_fail_v4) ? "enabled" : "disabled") : null
+      drop_on_fail_v6         = try(entry.drop_on_fail_v6, null) != null ? (try(entry.drop_on_fail_v6) ? "enabled" : "disabled") : null
+      force_order_v4          = try(entry.force_order_v4, null) != null ? (try(entry.force_order_v4) ? "enabled" : "disabled") : null
+      force_order_v6          = try(entry.force_order_v6, null) != null ? (try(entry.force_order_v6) ? "enabled" : "disabled") : null
+      load_share_v4           = try(entry.load_share_v4, null) != null ? (try(entry.load_share_v4) ? "enabled" : "disabled") : null
+      load_share_v6           = try(entry.load_share_v6, null) != null ? (try(entry.load_share_v6) ? "enabled" : "disabled") : null
+      set_default_next_hop_v4 = try(entry.set_default_next_hop_v4, null) != null ? (try(entry.set_default_next_hop_v4) ? "enabled" : "disabled") : null
+      set_default_next_hop_v6 = try(entry.set_default_next_hop_v6, null) != null ? (try(entry.set_default_next_hop_v6) ? "enabled" : "disabled") : null
+      set_vrf_v4              = try(entry.set_vrf_v4, null) != null ? (try(entry.set_vrf_v4) ? "enabled" : "disabled") : null
+      set_vrf_v6              = try(entry.set_vrf_v6, null) != null ? (try(entry.set_vrf_v6) ? "enabled" : "disabled") : null
+      verify_availability_v4  = try(entry.verify_availability_v4, null) != null ? (try(entry.verify_availability_v4) ? "enabled" : "disabled") : null
+      verify_availability_v6  = try(entry.verify_availability_v6, null) != null ? (try(entry.verify_availability_v6) ? "enabled" : "disabled") : null
+
+      match_route_prefix_lists = anytrue([try(entry.match_ip_address_prefix_list, null) != null, try(entry.match_ipv6_address_prefix_list, null) != null]) ? merge(
+        try(entry.match_ip_address_prefix_list, null) != null ? {
+          "sys/rpm/pfxlistv4-[${try(entry.match_ip_address_prefix_list)}]" = {}
+        } : {},
+        try(entry.match_ipv6_address_prefix_list, null) != null ? {
+          "sys/rpm/pfxlistv6-[${try(entry.match_ipv6_address_prefix_list)}]" = {}
+        } : {},
+      ) : null
+
+      match_route_access_lists = anytrue([try(entry.match_ip_address_access_list, null) != null, try(entry.match_ip_address, null) != null]) ? merge(
+        try(entry.match_ip_address_access_list, null) != null ? {
+          "sys/acl/ipv4/name-[${try(entry.match_ip_address_access_list)}]" = {}
+        } : {},
+        try(entry.match_ip_address, null) != null ? {
+          "sys/rpm/accesslist-[${try(entry.match_ip_address)}]" = {}
+        } : {},
+      ) : null
+
+      set_regular_community_additive     = try(entry.set_community, null) != null ? (try(entry.set_community_additive, null) != null ? (try(entry.set_community_additive) ? "enabled" : "disabled") : "disabled") : null
+      set_regular_community_no_community = try(entry.set_community, null) != null ? (try(entry.set_community_none, null) != null ? (try(entry.set_community_none) ? "enabled" : "disabled") : "disabled") : null
+      set_regular_community_criteria     = try(entry.set_community, null) != null ? "none" : null
+
+      set_regular_community_items = try(entry.set_community, null) != null ? {
+        try(entry.set_community) = {}
+      } : null
+
+      match_tags = length(try(entry.match_tags, [])) > 0 ? { for tag in try(entry.match_tags, []) : tag => {} } : null
+
+      set_metric                       = try(entry.set_metric, null)
+      set_metric_delay                 = try(entry.set_metric_delay, null)
+      set_metric_load                  = try(entry.set_metric_load, null)
+      set_metric_mtu                   = try(entry.set_metric_mtu, null)
+      set_metric_reliability           = try(entry.set_metric_reliability, null)
+      set_metric_type                  = try(entry.set_metric_type, null)
+      set_next_hop_v4_peer_address     = try(entry.set_ip_next_hop_peer_address, null) != null ? (try(entry.set_ip_next_hop_peer_address) ? "enabled" : "disabled") : null
+      set_next_hop_v4_unchanged        = try(entry.set_ip_next_hop_unchanged, null) != null ? (try(entry.set_ip_next_hop_unchanged) ? "enabled" : "disabled") : null
+      set_next_hop_v4_redist_unchanged = try(entry.set_ip_next_hop_redist_unchanged, null) != null ? (try(entry.set_ip_next_hop_redist_unchanged) ? "enabled" : "disabled") : null
+      set_next_hop_v6_peer_address     = try(entry.set_ipv6_next_hop_peer_address, null) != null ? (try(entry.set_ipv6_next_hop_peer_address) ? "enabled" : "disabled") : null
+      set_next_hop_v6_unchanged        = try(entry.set_ipv6_next_hop_unchanged, null) != null ? (try(entry.set_ipv6_next_hop_unchanged) ? "enabled" : "disabled") : null
+      set_next_hop_v6_redist_unchanged = try(entry.set_ipv6_next_hop_redist_unchanged, null) != null ? (try(entry.set_ipv6_next_hop_redist_unchanged) ? "enabled" : "disabled") : null
+      set_local_preference             = try(entry.set_local_preference, null)
+      set_policy_tag                   = try(entry.set_policy_tag, null)
+      set_path_selection_advertise     = try(entry.set_path_selection_advertise, null) != null ? { "unspecified" = "unspecified", "all" = "ps-all", "backup" = "ps-bestplus", "best2" = "ps-best2", "multipaths" = "ps-mpath" }[try(entry.set_path_selection_advertise)] : null
+      set_evpn_gateway_ip              = try(entry.set_evpn_gateway_ip, null)
+      set_evpn_gateway_type            = try(entry.set_evpn_gateway_ip_type, null)
+
+      match_next_hop_prefix_lists = try(entry.match_ip_next_hop_prefix_list, null) != null ? {
+        "sys/rpm/pfxlistv4-[${try(entry.match_ip_next_hop_prefix_list)}]" = {}
+      } : null
+
+      match_regular_community_criteria = try(entry.match_community, null) != null ? (try(entry.match_community_exact_match, null) != null ? (try(entry.match_community_exact_match) ? "exact" : null) : null) : null
+
+      match_regular_community_lists = try(entry.match_community, null) != null ? {
+        "sys/rpm/rtregcom-[${try(entry.match_community)}]" = {}
+      } : null
+    } } : null
+  } } : null
+
+  community_lists = length(try(local.device_config[each.key].community_lists, [])) > 0 ? { for cl in try(local.device_config[each.key].community_lists, []) : cl.name => {
+    mode = try(local.community_list_mode_map[try(cl.mode)], null)
+
+    entries = length(try(cl.entries, [])) > 0 ? { for entry in try(cl.entries, []) : entry.seq => {
+      action = try(entry.action, null)
+      regex  = try(entry.regex, null)
+
+      items = length(try(entry.communities, [])) > 0 ? { for community in try(entry.communities, []) : community => {} } : null
+    } } : null
+  } } : null
+
+  depends_on = [nxos_access_list.access_list]
+}

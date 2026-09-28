@@ -1,0 +1,106 @@
+resource "nxos_analytics" "analytics" {
+  for_each = { for device in local.devices : device.name => device
+  if try(local.device_config[device.name].analytics, null) != null }
+  device = each.key
+
+  instances = {
+    "analytics" = {
+      admin_state = try(local.device_config[each.key].analytics.shutdown, null) == null ? null : (try(local.device_config[each.key].analytics.shutdown) ? "disabled" : "enabled")
+      timeout     = try(local.device_config[each.key].analytics.flow_timeout, null)
+
+      profiles = length(try(local.device_config[each.key].analytics.flow_profiles, [])) > 0 ? { for profile in try(local.device_config[each.key].analytics.flow_profiles, []) : profile.name => {
+        burst_interval_shift                 = try(profile.burst_interval_shift, null)
+        collect_interval                     = try(profile.collect_interval, null)
+        ip_packet_id_shift                   = try(profile.ip_packet_id_shift, null)
+        mtu                                  = try(profile.mtu, null)
+        sequence_number_guess_threshold_high = try(profile.seq_num_guess_threshold_high, null)
+        sequence_number_guess_threshold_low  = try(profile.seq_num_guess_threshold_low, null)
+        source_port                          = try(profile.source_port, null)
+      } } : null
+
+      events = length(try(local.device_config[each.key].analytics.flow_events, [])) > 0 ? { for event in try(local.device_config[each.key].analytics.flow_events, []) : event.name => {
+        acl_drops              = try(event.capture_acl_drops, null)
+        black_hole             = try(event.capture_blackhole, null)
+        buffer_drops           = try(event.capture_buffer_drops, null)
+        event_export_max       = try(event.event_export_max, null)
+        forward_drops          = try(event.capture_fwd_drops, null)
+        group_drop_events      = try(event.group_drop_events, null)
+        group_latency_events   = try(event.group_latency_events, null)
+        group_packet_events    = try(event.group_packet_events, null)
+        ip_dont_fragment       = try(event.capture_ip_df, null)
+        latency_threshold      = try(event.latency_threshold, null)
+        latency_threshold_unit = try(event.latency_threshold_unit, null)
+        receive_window_zero    = try(event.capture_receive_window_zero, null)
+        tos                    = try(event.capture_tos, null)
+        tos_enable             = try(event.capture_tos, null) != null ? true : null
+        ttl_match_enable       = try(event.capture_ttl, null) != null ? true : null
+        ttl_match_value        = try(event.capture_ttl, null)
+      } } : null
+
+      policies = length(try(local.device_config[each.key].analytics.flow_filters, [])) > 0 ? { for filter in try(local.device_config[each.key].analytics.flow_filters, []) : filter.name => {
+        description = null
+
+        match_acls = anytrue([try(filter.ipv4_acl, null) != null, try(filter.ipv6_acl, null) != null, try(filter.ce_acl, null) != null]) ? merge(
+          try(filter.ipv4_acl, null) != null ? { "ipv4" = { acl_name = filter.ipv4_acl, description = null, filter_type = "ipv4" } } : {},
+          try(filter.ipv6_acl, null) != null ? { "ipv6" = { acl_name = filter.ipv6_acl, description = null, filter_type = "ipv6" } } : {},
+          try(filter.ce_acl, null) != null ? { "ce" = { acl_name = filter.ce_acl, description = null, filter_type = "ce" } } : {},
+        ) : null
+      } } : null
+
+      records = length(try(local.device_config[each.key].analytics.flow_records, [])) > 0 ? { for record in try(local.device_config[each.key].analytics.flow_records, []) : record.name => {
+        collect = try(join(",", record.collect), null)
+        match   = try(join(",", record.match), null)
+      } } : null
+
+      collectors = length(try(local.device_config[each.key].analytics.flow_exporters, [])) > 0 ? { for collector in try(local.device_config[each.key].analytics.flow_exporters, []) : collector.name => {
+        description            = try(collector.description, null)
+        dscp                   = try(collector.dscp, null)
+        destination_address    = try(collector.destination, null)
+        destination_port       = try(collector.transport_udp, null)
+        event_destination_port = try(collector.events_transport_udp, null)
+        inband_interface       = try(collector.inband_interface, null)
+        source_address         = try(collector.source_address, null)
+        source_interface       = try(collector.source_interface_type, null) != null ? "${local.intf_prefix_map[try(collector.source_interface_type)]}${try(collector.source_interface_id, "")}" : null
+        v9                     = try(collector.v9, null)
+        version                = try(collector.version, null)
+        vrf_name               = try(collector.vrf, null)
+      } } : null
+
+      monitors = length(try(local.device_config[each.key].analytics.flow_monitors, [])) > 0 ? { for monitor in try(local.device_config[each.key].analytics.flow_monitors, []) : monitor.name => {
+        record_target_dn = try(monitor.record, null) != null ? "sys/analytics/inst-analytics/recordp-${monitor.record}" : null
+
+        collector_buckets = length(try(monitor.exporter_bucket_ids, [])) > 0 ? { for bucket in try(monitor.exporter_bucket_ids, []) : tostring(bucket.id) => {
+          hash_high = try(bucket.hash_high, null)
+          hash_low  = try(bucket.hash_low, null)
+
+          collectors = length(try(bucket.exporters, [])) > 0 ? { for exporter in try(bucket.exporters, []) :
+            "sys/analytics/inst-analytics/collector-${exporter}" => {}
+          } : null
+        } } : null
+      } } : null
+
+      forward_instance_targets = try(local.device_config[each.key].analytics.flow_system_config, null) != null ? {
+        "0" = {
+          direction                    = try(local.device_config[each.key].analytics.flow_system_config.direction, null)
+          switch_latency               = try(local.device_config[each.key].analytics.flow_system_config.switch_latency, null)
+          system_exporter_id           = try(local.device_config[each.key].analytics.flow_system_config.exporter_id, null)
+          traffic_analytics_enabled    = try(local.device_config[each.key].analytics.flow_system_config.traffic_analytics, null)
+          monitor_attachment_target_dn = try(local.device_config[each.key].analytics.flow_system_config.monitor, null) != null ? "sys/analytics/inst-[analytics]/monitor-[${try(local.device_config[each.key].analytics.flow_system_config.monitor)}]" : null
+          profile_attachment_target_dn = try(local.device_config[each.key].analytics.flow_system_config.profile, null) != null ? "sys/analytics/inst-[analytics]/prof-[${try(local.device_config[each.key].analytics.flow_system_config.profile)}]" : null
+          events_attachment_target_dn  = try(local.device_config[each.key].analytics.flow_system_config.event, null) != null ? "sys/analytics/inst-[analytics]/events-[${try(local.device_config[each.key].analytics.flow_system_config.event)}]" : null
+          policy_attachment_target_dn  = try(local.device_config[each.key].analytics.flow_system_config.filter, null) != null ? "sys/analytics/inst-[analytics]/policy-[${try(local.device_config[each.key].analytics.flow_system_config.filter)}]" : null
+        }
+      } : null
+
+      traffic_analytics_interface_mode               = try(local.device_config[each.key].analytics.flow_traffic_analytics.mode_interface, null)
+      traffic_analytics_name                         = try(local.device_config[each.key].analytics.flow_traffic_analytics.name, null)
+      traffic_analytics_service_database_size        = try(local.device_config[each.key].analytics.flow_traffic_analytics.db_size, null)
+      traffic_analytics_troubleshoot_export_interval = try(local.device_config[each.key].analytics.flow_traffic_analytics.filter_export_interval, null)
+      traffic_analytics_udp_port_list                = try(local.device_config[each.key].analytics.flow_traffic_analytics.udp_port, null)
+    }
+  }
+
+  depends_on = [
+    nxos_feature.feature,
+  ]
+}

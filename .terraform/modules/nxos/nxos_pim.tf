@@ -1,0 +1,263 @@
+locals {
+  pim_interfaces = flatten([
+    for device in local.devices : concat(
+      [for int in try(local.device_config[device.name].interfaces.ethernets, []) : {
+        device               = device.name
+        vrf                  = try(int.vrf, "default")
+        interface_id         = "eth${int.id}"
+        bfd                  = try(int.pim.bfd_instance, null) == null ? null : (try(int.pim.bfd_instance) ? "enabled" : "disabled")
+        dr_priority          = try(int.pim.dr_priority, null)
+        passive              = try(int.pim.passive, null)
+        sparse_mode          = try(int.pim.sparse_mode, null)
+        border               = try(int.pim.border, null)
+        dr_delay             = try(int.pim.dr_delay, null)
+        join_prune_route_map = try(int.pim.jp_policy, null)
+        neighbor_route_map   = try(int.pim.neighbor_policy, null)
+        neighbor_prefix_list = try(int.pim.neighbor_policy_prefix_list, null)
+        rfc_strict           = try(int.pim.strict_rfc_compliant, null)
+      } if try(int.pim, null) != null],
+      [for int in try(local.device_config[device.name].interfaces.port_channels, []) : {
+        device               = device.name
+        vrf                  = try(int.vrf, "default")
+        interface_id         = "po${int.id}"
+        bfd                  = try(int.pim.bfd_instance, null) == null ? null : (try(int.pim.bfd_instance) ? "enabled" : "disabled")
+        dr_priority          = try(int.pim.dr_priority, null)
+        passive              = try(int.pim.passive, null)
+        sparse_mode          = try(int.pim.sparse_mode, null)
+        border               = try(int.pim.border, null)
+        dr_delay             = try(int.pim.dr_delay, null)
+        join_prune_route_map = try(int.pim.jp_policy, null)
+        neighbor_route_map   = try(int.pim.neighbor_policy, null)
+        neighbor_prefix_list = try(int.pim.neighbor_policy_prefix_list, null)
+        rfc_strict           = try(int.pim.strict_rfc_compliant, null)
+      } if try(int.pim, null) != null],
+      [for int in try(local.device_config[device.name].interfaces.loopbacks, []) : {
+        device               = device.name
+        vrf                  = try(int.vrf, "default")
+        interface_id         = "lo${int.id}"
+        bfd                  = try(int.pim.bfd_instance, null) == null ? null : (try(int.pim.bfd_instance) ? "enabled" : "disabled")
+        dr_priority          = try(int.pim.dr_priority, null)
+        passive              = try(int.pim.passive, null)
+        sparse_mode          = try(int.pim.sparse_mode, null)
+        border               = try(int.pim.border, null)
+        dr_delay             = try(int.pim.dr_delay, null)
+        join_prune_route_map = try(int.pim.jp_policy, null)
+        neighbor_route_map   = try(int.pim.neighbor_policy, null)
+        neighbor_prefix_list = try(int.pim.neighbor_policy_prefix_list, null)
+        rfc_strict           = try(int.pim.strict_rfc_compliant, null)
+      } if try(int.pim, null) != null],
+      [for int in try(local.device_config[device.name].interfaces.vlans, []) : {
+        device               = device.name
+        vrf                  = try(int.vrf, "default")
+        interface_id         = "vlan${int.id}"
+        bfd                  = try(int.pim.bfd_instance, null) == null ? null : (try(int.pim.bfd_instance) ? "enabled" : "disabled")
+        dr_priority          = try(int.pim.dr_priority, null)
+        passive              = try(int.pim.passive, null)
+        sparse_mode          = try(int.pim.sparse_mode, null)
+        border               = try(int.pim.border, null)
+        dr_delay             = try(int.pim.dr_delay, null)
+        join_prune_route_map = try(int.pim.jp_policy, null)
+        neighbor_route_map   = try(int.pim.neighbor_policy, null)
+        neighbor_prefix_list = try(int.pim.neighbor_policy_prefix_list, null)
+        rfc_strict           = try(int.pim.strict_rfc_compliant, null)
+      } if try(int.pim, null) != null],
+      # Subinterfaces (ethernets)
+      flatten([for eth in try(local.device_config[device.name].interfaces.ethernets, []) :
+        [for sub in try(eth.subinterfaces, []) : {
+          device               = device.name
+          vrf                  = try(sub.vrf, "default")
+          interface_id         = "eth${eth.id}.${sub.id}"
+          bfd                  = try(sub.pim.bfd_instance, null) == null ? null : (try(sub.pim.bfd_instance) ? "enabled" : "disabled")
+          dr_priority          = try(sub.pim.dr_priority, null)
+          passive              = try(sub.pim.passive, null)
+          sparse_mode          = try(sub.pim.sparse_mode, null)
+          border               = try(sub.pim.border, null)
+          dr_delay             = try(sub.pim.dr_delay, null)
+          join_prune_route_map = try(sub.pim.jp_policy, null)
+          neighbor_route_map   = try(sub.pim.neighbor_policy, null)
+          neighbor_prefix_list = try(sub.pim.neighbor_policy_prefix_list, null)
+          rfc_strict           = try(sub.pim.strict_rfc_compliant, null)
+        } if try(sub.pim, null) != null]
+      ]),
+      # Subinterfaces (port channels)
+      flatten([for pc in try(local.device_config[device.name].interfaces.port_channels, []) :
+        [for sub in try(pc.subinterfaces, []) : {
+          device               = device.name
+          vrf                  = try(sub.vrf, "default")
+          interface_id         = "po${pc.id}.${sub.id}"
+          bfd                  = try(sub.pim.bfd_instance, null) == null ? null : (try(sub.pim.bfd_instance) ? "enabled" : "disabled")
+          dr_priority          = try(sub.pim.dr_priority, null)
+          passive              = try(sub.pim.passive, null)
+          sparse_mode          = try(sub.pim.sparse_mode, null)
+          border               = try(sub.pim.border, null)
+          dr_delay             = try(sub.pim.dr_delay, null)
+          join_prune_route_map = try(sub.pim.jp_policy, null)
+          neighbor_route_map   = try(sub.pim.neighbor_policy, null)
+          neighbor_prefix_list = try(sub.pim.neighbor_policy_prefix_list, null)
+          rfc_strict           = try(sub.pim.strict_rfc_compliant, null)
+        } if try(sub.pim, null) != null]
+      ]),
+    )
+  ])
+  pim_interfaces_by_device_vrf = { for item in local.pim_interfaces :
+    "${item.device}/${item.vrf}" => item...
+  }
+}
+
+resource "nxos_pim" "pim" {
+  for_each = { for device in local.devices : device.name => device
+    if try(local.device_config[device.name].routing.pim, null) != null ||
+  length([for int in local.pim_interfaces : int if int.device == device.name]) > 0 }
+  device               = each.key
+  admin_state          = null
+  instance_admin_state = null
+  evpn_border_leaf     = try(local.device_config[each.key].routing.pim.evpn_border_leaf, null)
+  extra_net            = try(local.device_config[each.key].routing.pim.extranet, null)
+
+  vrfs = merge(
+    # Synthetic "default" VRF from process-level attributes
+    {
+      "default" = {
+        bfd                  = try(local.device_config[each.key].routing.pim.bfd, null)
+        auto_enable          = try(local.device_config[each.key].routing.pim.auto_enable, null)
+        flush_routes         = try(local.device_config[each.key].routing.pim.flush_routes, null)
+        log_neighbor_changes = try(local.device_config[each.key].routing.pim.log_neighbor_changes, null)
+        mtu                  = try(local.device_config[each.key].routing.pim.mtu, null)
+        register_rate_limit  = try(local.device_config[each.key].routing.pim.register_rate_limit, null)
+        rfc_strict           = try(local.device_config[each.key].routing.pim.strict_rfc_compliant, null)
+        spt_switch_graceful  = try(local.device_config[each.key].routing.pim.spt_switch_graceful, null)
+
+        ssm_range_group_list_1 = try(local.device_config[each.key].routing.pim.ssm.range_1, null)
+        ssm_range_group_list_2 = try(local.device_config[each.key].routing.pim.ssm.range_2, null)
+        ssm_range_group_list_3 = try(local.device_config[each.key].routing.pim.ssm.range_3, null)
+        ssm_range_group_list_4 = try(local.device_config[each.key].routing.pim.ssm.range_4, null)
+        ssm_range_prefix_list  = try(local.device_config[each.key].routing.pim.ssm.prefix_list, null)
+        ssm_range_route_map    = try(local.device_config[each.key].routing.pim.ssm.route_map, null)
+        ssm_range_none         = try(local.device_config[each.key].routing.pim.ssm.none, null)
+
+        static_rps = length(try(local.device_config[each.key].routing.pim.rps, [])) > 0 ? { for rp in try(local.device_config[each.key].routing.pim.rps, []) : rp.address => {
+          group_lists = { for gl in try(rp.group_lists, [{ group_list = try(rp.group_list, "224.0.0.0/4") }]) :
+            try(gl.group_list, gl.address, "224.0.0.0/4") => {
+              bidir    = try(gl.bidir, rp.bidir, null)
+              override = try(gl.override, rp.override, null)
+            }
+          }
+        } } : null
+
+        anycast_rp_peers = length(try(local.device_config[each.key].routing.pim.anycast_rps, [])) > 0 ? { for rp in try(local.device_config[each.key].routing.pim.anycast_rps, []) :
+          "${rp.address}/32;${rp.set_address}/32" => {}
+        } : null
+
+        interfaces = length(try(local.pim_interfaces_by_device_vrf["${each.key}/default"], [])) > 0 ? { for int in try(local.pim_interfaces_by_device_vrf["${each.key}/default"], []) : int.interface_id => {
+          bfd                  = int.bfd
+          dr_priority          = int.dr_priority
+          passive              = int.passive
+          sparse_mode          = int.sparse_mode
+          border               = int.border
+          dr_delay             = int.dr_delay
+          join_prune_route_map = int.join_prune_route_map
+          neighbor_route_map   = int.neighbor_route_map
+          neighbor_prefix_list = int.neighbor_prefix_list
+          rfc_strict           = int.rfc_strict
+        } } : null
+      }
+    },
+    # Explicit non-default VRFs
+    { for vrf in try(local.device_config[each.key].routing.pim.vrfs, []) : vrf.vrf => {
+      bfd                  = try(vrf.bfd, null)
+      auto_enable          = try(vrf.auto_enable, null)
+      flush_routes         = try(vrf.flush_routes, null)
+      log_neighbor_changes = try(vrf.log_neighbor_changes, null)
+      mtu                  = try(vrf.mtu, null)
+      register_rate_limit  = try(vrf.register_rate_limit, null)
+      rfc_strict           = try(vrf.strict_rfc_compliant, null)
+      spt_switch_graceful  = try(vrf.spt_switch_graceful, null)
+
+      ssm_range_group_list_1 = try(vrf.ssm.range_1, null)
+      ssm_range_group_list_2 = try(vrf.ssm.range_2, null)
+      ssm_range_group_list_3 = try(vrf.ssm.range_3, null)
+      ssm_range_group_list_4 = try(vrf.ssm.range_4, null)
+      ssm_range_prefix_list  = try(vrf.ssm.prefix_list, null)
+      ssm_range_route_map    = try(vrf.ssm.route_map, null)
+      ssm_range_none         = try(vrf.ssm.none, null)
+
+      static_rps = length(try(vrf.rps, [])) > 0 ? { for rp in try(vrf.rps, []) : rp.address => {
+        group_lists = { for gl in try(rp.group_lists, [{ group_list = try(rp.group_list, "224.0.0.0/4") }]) :
+          try(gl.group_list, gl.address, "224.0.0.0/4") => {
+            bidir    = try(gl.bidir, rp.bidir, null)
+            override = try(gl.override, rp.override, null)
+          }
+        }
+      } } : null
+
+      anycast_rp_peers = length(try(vrf.anycast_rps, [])) > 0 ? { for rp in try(vrf.anycast_rps, []) :
+        "${rp.address}/32;${rp.set_address}/32" => {}
+      } : null
+
+      interfaces = length(try(local.pim_interfaces_by_device_vrf["${each.key}/${vrf.vrf}"], [])) > 0 ? { for int in try(local.pim_interfaces_by_device_vrf["${each.key}/${vrf.vrf}"], []) : int.interface_id => {
+        bfd                  = int.bfd
+        dr_priority          = int.dr_priority
+        passive              = int.passive
+        sparse_mode          = int.sparse_mode
+        border               = int.border
+        dr_delay             = int.dr_delay
+        join_prune_route_map = int.join_prune_route_map
+        neighbor_route_map   = int.neighbor_route_map
+        neighbor_prefix_list = int.neighbor_prefix_list
+        rfc_strict           = int.rfc_strict
+      } } : null
+    } },
+    # Create VRF entries for PIM interfaces that belong to VRFs not explicitly listed in routing.pim.vrfs
+    { for vrf_key, ints in local.pim_interfaces_by_device_vrf :
+      split("/", vrf_key)[1] => {
+        bfd                  = null
+        auto_enable          = null
+        flush_routes         = null
+        log_neighbor_changes = null
+        mtu                  = null
+        register_rate_limit  = null
+        rfc_strict           = null
+        spt_switch_graceful  = null
+
+        ssm_range_group_list_1 = null
+        ssm_range_group_list_2 = null
+        ssm_range_group_list_3 = null
+        ssm_range_group_list_4 = null
+        ssm_range_prefix_list  = null
+        ssm_range_route_map    = null
+        ssm_range_none         = null
+
+        static_rps = null
+
+        anycast_rp_peers = null
+
+        interfaces = { for int in ints : int.interface_id => {
+          bfd                  = int.bfd
+          dr_priority          = int.dr_priority
+          passive              = int.passive
+          sparse_mode          = int.sparse_mode
+          border               = int.border
+          dr_delay             = int.dr_delay
+          join_prune_route_map = int.join_prune_route_map
+          neighbor_route_map   = int.neighbor_route_map
+          neighbor_prefix_list = int.neighbor_prefix_list
+          rfc_strict           = int.rfc_strict
+        } }
+      }
+      if split("/", vrf_key)[0] == each.key &&
+      !contains([for vrf in try(local.device_config[each.key].routing.pim.vrfs, []) : vrf.vrf], split("/", vrf_key)[1]) &&
+      split("/", vrf_key)[1] != "default"
+    }
+  )
+
+  depends_on = [
+    nxos_feature.feature,
+    nxos_loopback_interface.loopback_interface,
+    nxos_physical_interface.physical_interface,
+    nxos_port_channel_interface.port_channel_interface,
+    nxos_route_policy.route_policy,
+    nxos_subinterface.subinterface,
+    nxos_svi_interface.svi_interface,
+    nxos_vrf.vrf,
+  ]
+}

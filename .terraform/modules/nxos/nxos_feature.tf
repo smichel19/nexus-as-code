@@ -1,0 +1,47 @@
+resource "nxos_feature" "feature" {
+  for_each = { for device in local.devices : device.name => device
+    if try(local.device_config[device.name].feature, null) != null ||
+  try(local.device_config[device.name].feature_set, null) != null }
+  device               = each.key
+  analytics            = try(local.device_config[each.key].feature.analytics, null) == null ? null : (try(local.device_config[each.key].feature.analytics) ? "enabled" : "disabled")
+  bash_shell           = try(local.device_config[each.key].feature.bash_shell, null) == null ? null : (try(local.device_config[each.key].feature.bash_shell) ? "enabled" : "disabled")
+  bfd                  = try(local.device_config[each.key].feature.bfd, null) == null ? null : (try(local.device_config[each.key].feature.bfd) ? "enabled" : "disabled")
+  bgp                  = try(local.device_config[each.key].feature.bgp, null) == null ? null : (try(local.device_config[each.key].feature.bgp) ? "enabled" : "disabled")
+  dhcp                 = try(local.device_config[each.key].feature.dhcp, null) == null ? null : (try(local.device_config[each.key].feature.dhcp) ? "enabled" : "disabled")
+  evpn                 = try(local.device_config[each.key].feature.evpn, null) == null ? null : (try(local.device_config[each.key].feature.evpn) ? "enabled" : "disabled")
+  grpc                 = try(local.device_config[each.key].feature.grpc, null) == null ? null : (try(local.device_config[each.key].feature.grpc) ? "enabled" : "disabled")
+  hmm                  = try(local.device_config[each.key].feature.fabric_forwarding, null) == null ? null : (try(local.device_config[each.key].feature.fabric_forwarding) ? "enabled" : "disabled")
+  hsrp                 = try(local.device_config[each.key].feature.hsrp, null) == null ? null : (try(local.device_config[each.key].feature.hsrp) ? "enabled" : "disabled")
+  interface_vlan       = try(local.device_config[each.key].feature.interface_vlan, null) == null ? null : (try(local.device_config[each.key].feature.interface_vlan) ? "enabled" : "disabled")
+  isis                 = try(local.device_config[each.key].feature.isis, null) == null ? null : (try(local.device_config[each.key].feature.isis) ? "enabled" : "disabled")
+  lacp                 = try(local.device_config[each.key].feature.lacp, null) == null ? null : (try(local.device_config[each.key].feature.lacp) ? "enabled" : "disabled")
+  lldp                 = try(local.device_config[each.key].feature.lldp, null) == null ? null : (try(local.device_config[each.key].feature.lldp) ? "enabled" : "disabled")
+  macsec               = try(local.device_config[each.key].feature.macsec, null) == null ? null : (try(local.device_config[each.key].feature.macsec) ? "enabled" : "disabled")
+  netflow              = try(local.device_config[each.key].feature.netflow, null) == null ? null : (try(local.device_config[each.key].feature.netflow) ? "enabled" : "disabled")
+  ngmvpn               = try(local.device_config[each.key].feature.ngmvpn, null) == null ? null : (try(local.device_config[each.key].feature.ngmvpn) ? "enabled" : "disabled")
+  ngoam                = try(local.device_config[each.key].feature.ngoam, null) == null ? null : (try(local.device_config[each.key].feature.ngoam) ? "enabled" : "disabled")
+  nv_overlay           = try(local.device_config[each.key].feature.nv_overlay, null) == null ? null : (try(local.device_config[each.key].feature.nv_overlay) ? "enabled" : "disabled")
+  nxapi                = try(local.device_config[each.key].feature.nxapi, null) == null ? null : (try(local.device_config[each.key].feature.nxapi) ? "enabled" : "disabled")
+  ospf                 = try(local.device_config[each.key].feature.ospf, null) == null ? null : (try(local.device_config[each.key].feature.ospf) ? "enabled" : "disabled")
+  ospfv3               = try(local.device_config[each.key].feature.ospfv3, null) == null ? null : (try(local.device_config[each.key].feature.ospfv3) ? "enabled" : "disabled")
+  pim                  = try(local.device_config[each.key].feature.pim, null) == null ? null : (try(local.device_config[each.key].feature.pim) ? "enabled" : "disabled")
+  ptp                  = try(local.device_config[each.key].feature.ptp, null) == null ? null : (try(local.device_config[each.key].feature.ptp) ? "enabled" : "disabled")
+  pvlan                = try(local.device_config[each.key].feature.private_vlan, null) == null ? null : (try(local.device_config[each.key].feature.private_vlan) ? "enabled" : "disabled")
+  scp_server           = try(local.device_config[each.key].feature.scp_server, null) == null ? null : (try(local.device_config[each.key].feature.scp_server) ? "enabled" : "disabled")
+  security_group       = try(local.device_config[each.key].feature.security_group, null) == null ? null : (try(local.device_config[each.key].feature.security_group) ? "enabled" : "disabled")
+  sflow                = try(local.device_config[each.key].feature.sflow, null) == null ? null : (try(local.device_config[each.key].feature.sflow) ? "enabled" : "disabled")
+  service_acceleration = try(local.device_config[each.key].feature.service_acceleration, null) == null ? null : (try(local.device_config[each.key].feature.service_acceleration) ? "enabled" : "disabled")
+  sftp_server          = try(local.device_config[each.key].feature.sftp_server, null) == null ? null : (try(local.device_config[each.key].feature.sftp_server) ? "enabled" : "disabled")
+  ssh                  = try(local.device_config[each.key].feature.ssh, null) == null ? null : (try(local.device_config[each.key].feature.ssh) ? "enabled" : "disabled")
+  tacacs               = try(local.device_config[each.key].feature.tacacs, null) == null ? null : (try(local.device_config[each.key].feature.tacacs) ? "enabled" : "disabled")
+  telemetry            = try(local.device_config[each.key].feature.telemetry, null) == null ? null : (try(local.device_config[each.key].feature.telemetry) ? "enabled" : "disabled")
+  telnet               = try(local.device_config[each.key].feature.telnet, null) == null ? null : (try(local.device_config[each.key].feature.telnet) ? "enabled" : "disabled")
+  udld                 = try(local.device_config[each.key].feature.udld, null) == null ? null : (try(local.device_config[each.key].feature.udld) ? "enabled" : "disabled")
+  vn_segment           = try(local.device_config[each.key].feature.vn_segment_vlan_based, null) == null ? null : (try(local.device_config[each.key].feature.vn_segment_vlan_based) ? "enabled" : "disabled")
+  vpc                  = try(local.device_config[each.key].feature.vpc, null) == null ? null : (try(local.device_config[each.key].feature.vpc) ? "enabled" : "disabled")
+  feature_sets = anytrue([try(local.device_config[each.key].feature_set.fex, null) != null, try(local.device_config[each.key].feature_set.mpls, null) != null, try(local.device_config[each.key].feature_set.virtualization, null) != null]) ? merge(
+    try(local.device_config[each.key].feature_set.fex, null) == null ? {} : { "fex" = { admin_state = try(local.device_config[each.key].feature_set.fex) ? "enabled" : "disabled" } },
+    try(local.device_config[each.key].feature_set.mpls, null) == null ? {} : { "mpls" = { admin_state = try(local.device_config[each.key].feature_set.mpls) ? "enabled" : "disabled" } },
+    try(local.device_config[each.key].feature_set.virtualization, null) == null ? {} : { "virtualization" = { admin_state = try(local.device_config[each.key].feature_set.virtualization) ? "enabled" : "disabled" } },
+  ) : null
+}

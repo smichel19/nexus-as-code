@@ -1,0 +1,25 @@
+locals {
+  keychain_crypto_algorithm_map = {
+    "none"         = "NONE"
+    "md5"          = "MD5"
+    "hmac-sha-1"   = "HMAC-SHA-1"
+    "hmac-sha-256" = "HMAC-SHA-256"
+    "hmac-sha-384" = "HMAC-SHA-384"
+    "hmac-sha-512" = "HMAC-SHA-512"
+    "3des"         = "3DES"
+    "aes"          = "AES"
+  }
+}
+
+resource "nxos_keychain" "keychain" {
+  for_each = { for device in local.devices : device.name => device
+  if length(try(local.device_config[device.name].key_chains, [])) > 0 }
+  device = each.key
+  keychains = length(try(local.device_config[each.key].key_chains, [])) > 0 ? { for keychain in try(local.device_config[each.key].key_chains, []) : keychain.name => {
+    keys = length(try(keychain.keys, [])) > 0 ? { for key in try(keychain.keys, []) : key.id => {
+      cryptographic_algorithm = try(local.keychain_crypto_algorithm_map[try(key.cryptographic_algorithm)], null)
+      encryption_type         = try(key.encryption_type, null)
+      key_string              = try(key.key_string, null)
+    } } : null
+  } } : null
+}

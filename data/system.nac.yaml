@@ -1,0 +1,15 @@
+---
+nxos:
+  devices:
+    - name: Nexus-1
+      configuration:
+        system:
+          hostname: Nexus-1
+          mtu: 9216
+        feature:
+          lacp: true
+          vpc: true
+          interface_vlan: true
+          nxapi: true
+
+  
